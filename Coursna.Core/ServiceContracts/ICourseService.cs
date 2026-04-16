@@ -1,0 +1,29 @@
+﻿using Coursna.Core.Dtos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Coursna.Core.ServiceContracts
+{
+    public interface ICourseService
+    {
+        Task<CourseResponseDto> CreateCourseAsync(CreateCourseDto dto, string teacherId);
+        Task<List<CourseResponseDto>> GetTeacherCoursesAsync(string teacherId);
+
+        Task<CourseResponseDto?> GetByIdAsync(int id);
+
+        Task<bool> UpdateCourseAsync(int id, CreateCourseDto dto, string teacherId);
+
+        Task<bool> DeleteCourseAsync(int id, string teacherId);
+
+        Task<List<CourseResponseDto>> GetPublicCoursesAsync();
+        Task<List<CourseResponseDto>> GetAllCoursesAsync();
+
+        Task<bool> ApproveCourseAsync(int id);
+
+        Task<bool> RejectCourseAsync(int id);
+
+    }
+}

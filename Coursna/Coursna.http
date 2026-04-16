@@ -1,0 +1,6 @@
+@Coursna_HostAddress = http://localhost:5043
+
+GET {{Coursna_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
