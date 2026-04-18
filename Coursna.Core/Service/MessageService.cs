@@ -1,0 +1,47 @@
+﻿using Coursna.Core.Domain.Entities;
+using Coursna.Core.Domain.RepositoryInterface;
+using Coursna.Core.Dtos;
+using Coursna.Core.ServiceContracts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Coursna.Core.Service
+{
+    public class MessageService : IMessageService
+    {
+        private readonly IMessageRepository _messageRepo;
+
+        public MessageService(IMessageRepository messageRepo)
+        {
+            _messageRepo = messageRepo;
+        }
+        public async Task<List<MessageResponseDto>> GetConversationAsync(string currentUserId, string otherUserId)
+        {
+            var messages = await _messageRepo.GetConversationAsync(currentUserId, otherUserId);
+
+            return messages
+                .Select(m => m.ToResponse())
+                .ToList();
+        }
+
+        public async Task<AuthResponseDto> SendMessageAsync(string senderId, SendMessageDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.Content))
+            {
+                return AuthResponseDto.Fail("Content is required");
+            }
+            var message = new Message
+            {
+                SenderId = senderId,
+                ReceiverId = dto.ReceiverId,
+                content = dto.Content,
+                SentAt = DateTime.UtcNow
+            };
+            await _messageRepo.AddAsync(message);
+            return AuthResponseDto.Success("Message sent");
+        }
+    }
+}

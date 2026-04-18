@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace Coursna.Core.Domain.RepositoryInterface
 {
-    public interface IcourseRepository
+    public interface IEnrollmentRepository:IRepository<Enrollment>
     {
-        Task<List<Course>> GetTeacherCousres(string id);
-        Task<List<Course>> GetPublicCoursesByTeacherAsync(string teacherId);
+        Task<Enrollment?> GetActiveEnrollmentAsync(string studentId, int courseId);
+        Task<List<Course>> GetStudentCoursesAsync(string studentId);
     }
 }
+

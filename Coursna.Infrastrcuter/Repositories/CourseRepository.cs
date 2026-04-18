@@ -17,9 +17,11 @@ namespace Coursna.Infrastrcuter.Repositories
         _context = context;
         }
 
-        public async Task<List<Course>> GetPublicCourses()
+        public async Task<List<Course>> GetPublicCoursesByTeacherAsync(string teacherId)
         {
-            return await _context.Courses.Where(c=>c.IsApproved).ToListAsync();
+            return await _context.Courses
+                .Where(c => c.IsApproved && c.TeacherId == teacherId)
+                .ToListAsync();
         }
 
         public async Task<List<Course>> GetTeacherCousres(string id)

@@ -19,6 +19,7 @@ namespace Coursna.Infrastrcuter.DataContext
         public DbSet<Message> Messages { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<Grade> Grades { get; set; }
+        public DbSet<CourseCode> courseCodes { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -54,6 +55,10 @@ namespace Coursna.Infrastrcuter.DataContext
             builder.Entity<Enrollment>()
                 .HasIndex(e => new { e.StudentId, e.CourseId, e.StartDate })
                 .IsUnique();
+            // el code lazem yb2a unique
+            builder.Entity<CourseCode>()
+              .HasIndex(c => c.Code)
+              .IsUnique();
         }
     }
 }

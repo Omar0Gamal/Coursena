@@ -48,6 +48,17 @@ namespace Coursna
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<IcourseRepository, CourseRepository>();
             builder.Services.AddScoped<ICourseService, CourseService>();
+            builder.Services.AddScoped<ICourseCodeRepository, CourseCodeRepository>();
+            builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+
+            builder.Services.AddScoped<ICourseCodeService, CourseCodeService>();
+            builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+            builder.Services.AddScoped<ICourseContentRepository, CourseContentRepository>();
+            builder.Services.AddScoped<ICourseContentService, CourseContentService>();
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
+
+            builder.Services.AddSignalR();
 
             builder.Services.AddScoped<AppDataSeeder>();
             builder.Services.AddAuthentication();

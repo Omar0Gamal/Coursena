@@ -23,7 +23,7 @@ namespace Coursna.Infrastrcuter.Repositories
            await _dbSet.AddAsync(entity);
         }
 
-        public  void DeleteAsync(T entity)
+        public void DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
         }
@@ -43,9 +43,10 @@ namespace Coursna.Infrastrcuter.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public  void UpdateAsync(T entity)
+        public async Task UpdateAsync(T entity)
         {
             _dbSet.Update(entity);
+            await Task.CompletedTask;
         }
     }
 }

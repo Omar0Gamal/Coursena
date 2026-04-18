@@ -18,12 +18,30 @@ namespace Coursna.Controllers
        
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("courses/{code}")]
+        public async Task<IActionResult> GetCoursesByInviteCode(string code)
         {
-            var result = await _courseService.GetPublicCoursesAsync();
+          
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return Problem(
+                    title: "Invalid Code",
+                    detail: "Invite code is required",
+                    statusCode: 400
+                );
+            }
+
+            var result = await _courseService.GetPublicCoursesByInviteCodeAsync(code);
+
+           
+            if (result == null || !result.Any())
+            {
+                return NotFound("No courses found for this teacher");
+            }
+
+           
             return Ok(result);
         }
-
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)

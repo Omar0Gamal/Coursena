@@ -1,7 +1,10 @@
 ﻿using Coursna.Core.Domain.Entities;
+using Coursna.Core.Domain.IdentityEntities;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +17,12 @@ namespace Coursna.Core.Service
     {
         private readonly IRepository<Course> _Repository;
         private readonly IcourseRepository _courseRepository;
-        public CourseService(IRepository<Course> repository,IcourseRepository courserepo)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public CourseService(IRepository<Course> repository,IcourseRepository courserepo,UserManager<ApplicationUser> userManager)
         {
             _Repository = repository;
             _courseRepository = courserepo;
+            _userManager = userManager;
 
         }
         public async Task<CourseResponseDto> CreateCourseAsync(CreateCourseDto dto, string teacherId)
@@ -31,7 +36,15 @@ namespace Coursna.Core.Service
 
         }
 
+        public async Task<string> GetInviteCodeAsync(string teacherId)
+        {
+            var teacher = await _userManager.FindByIdAsync(teacherId);
 
+            if (teacher == null)
+                return null;
+
+            return teacher.InviteCode;
+        }
 
         public async Task<CourseResponseDto?> GetByIdAsync(int id)
         {
@@ -86,12 +99,26 @@ namespace Coursna.Core.Service
             return true;
         }
 
-        public async Task<List<CourseResponseDto>> GetPublicCoursesAsync()
+        public async Task<List<CourseResponseDto>> GetPublicCoursesByInviteCodeAsync(string code)
         {
-            var courses = await _courseRepository.GetPublicCourses();
+          
+            if (string.IsNullOrWhiteSpace(code))
+                return new List<CourseResponseDto>();
 
+           
+            var teacher = await _userManager.Users
+                .FirstOrDefaultAsync(t => t.InviteCode == code);
+
+            if (teacher == null)
+                return new List<CourseResponseDto>();
+
+           
+            var courses = await _courseRepository
+                .GetPublicCoursesByTeacherAsync(teacher.Id);
+
+            
             return courses
-                .Select(c=>c.ToResponse())
+                .Select(c => c.ToResponse())
                 .ToList();
         }
         public async Task<List<CourseResponseDto>> GetAllCoursesAsync()

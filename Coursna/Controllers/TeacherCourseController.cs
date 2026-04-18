@@ -82,5 +82,20 @@ namespace Coursna.Controllers
 
             return Ok("Deleted successfully");
         }
+        [HttpGet("invite-code")]
+        public async Task<IActionResult> GetInviteCode()
+        {
+            
+            var teacherId = _userManager.GetUserId(User);
+
+            var code = await _courseService.GetInviteCodeAsync(teacherId);
+
+            if (string.IsNullOrEmpty(code))
+            {
+                return NotFound("Invite code not found");
+            }
+
+            return Ok(new { inviteCode = code });
+        }
     }
 }

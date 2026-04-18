@@ -11,7 +11,7 @@ namespace Coursna.Core.Domain.RepositoryInterface
         Task<List<T>> GetAllAsync();
         Task<T?> GetByIdAsync(int id);
         Task AddAsync(T entity);
-        void UpdateAsync(T entity);
+        Task UpdateAsync(T entity);
         void DeleteAsync(T entity);
         Task SaveChangesAsync();
 
