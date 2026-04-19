@@ -57,7 +57,10 @@ namespace Coursna
             builder.Services.AddScoped<ICourseContentService, CourseContentService>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddScoped<IMessageService, MessageService>();
-
+            builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
+            builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
+            builder.Services.AddScoped<ILookUpService, LookUpService>();
+            builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddSignalR();
 
             builder.Services.AddScoped<AppDataSeeder>();

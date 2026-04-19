@@ -18,7 +18,7 @@ namespace Coursna.Controllers
             _messageService = messageService;
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("History{userId}")]
         public async Task<IActionResult> GetConversation(string userId)
         {
             var currentUser = User.FindFirstValue(ClaimTypes.NameIdentifier);

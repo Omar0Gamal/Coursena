@@ -17,7 +17,7 @@ namespace Coursna.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("GetCourses")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _courseService.GetAllCoursesAsync();

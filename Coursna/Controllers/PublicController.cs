@@ -18,7 +18,7 @@ namespace Coursna.Controllers
        
         [HttpGet]
         [AllowAnonymous]
-        [HttpGet("courses/{code}")]
+        [HttpGet("GetTeacherCourses/{code}")]
         public async Task<IActionResult> GetCoursesByInviteCode(string code)
         {
           
@@ -42,20 +42,14 @@ namespace Coursna.Controllers
            
             return Ok(result);
         }
-        [HttpGet("{id}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var result = await _courseService.GetByIdAsync(id);
 
-            if (result == null)
-            {
-                return Problem(
-                    title: "Not Found",
-                    detail: "Course does not exist or is not approved",
-                    statusCode: StatusCodes.Status404NotFound
-                );
-            }
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(string inviteCode,string searchBy,string searchString)
+        {
+            var result = await _courseService.SearchCoursesAsync(
+                inviteCode,
+                searchBy,
+                searchString);
 
             return Ok(result);
         }

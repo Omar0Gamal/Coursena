@@ -26,7 +26,7 @@ namespace Coursna.Core.Service
             _codeRepo = codeRepo;
         }
 
-        public async Task<AuthResponseDto> EnrollByCodeAsync(string studentId, int courseId, string code)
+        public async Task<AuthResponseDto> EnrollByCodeAsync(string studentId, string code)
         {
             if (string.IsNullOrWhiteSpace(code))
                 return AuthResponseDto.Fail("Code is required");
@@ -36,28 +36,35 @@ namespace Coursna.Core.Service
             if (courseCode == null)
                 return AuthResponseDto.Fail("Invalid code");
 
-            // 🔥 important check
-            if (courseCode.CourseId != courseId)
-                return AuthResponseDto.Fail("Code does not belong to this course");
-
             if (courseCode.IsUsed)
                 return AuthResponseDto.Fail("Code already used");
 
-            var course = await _courseRepo.GetByIdAsync(courseId);
+            var course = await _courseRepo.GetByIdAsync(courseCode.CourseId);
 
             if (course == null)
                 return AuthResponseDto.Fail("Course not found");
 
+           
+            if (!course.IsApproved)
+                return AuthResponseDto.Fail("Course not available");
+
+            var existing = await _enrollmentRepo
+                .GetActiveEnrollmentAsync(studentId, course.Id);
+
+            if (existing != null)
+                return AuthResponseDto.Fail("Already enrolled");
+
             var enrollment = new Enrollment
             {
                 StudentId = studentId,
-                CourseId = courseId,
+                CourseId = course.Id,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(course.DurationInDays)
             };
 
             await _enrollmentRepo.AddAsync(enrollment);
             await _enrollmentRepo.SaveChangesAsync();
+
             courseCode.IsUsed = true;
             courseCode.UsedAt = DateTime.UtcNow;
             courseCode.UsedByStudentId = studentId;
@@ -75,6 +82,26 @@ namespace Coursna.Core.Service
             return courses
                 .Select(c => c.ToResponse())
                 .ToList();
+        }
+        public async Task<AuthResponseDto> CheckCompletionAsync(string studentId, int courseId)
+        {
+            var enrollment = await _enrollmentRepo.GetEnrollmentAsync(studentId, courseId);
+
+            if (enrollment == null)
+                return AuthResponseDto.Fail("Enrollment not found");
+
+            
+            if (DateTime.UtcNow >= enrollment.EndDate)
+            {
+                enrollment.IsCompleted = true;
+
+                await _enrollmentRepo.UpdateAsync(enrollment);
+                await _enrollmentRepo.SaveChangesAsync();
+
+                return AuthResponseDto.Success("Course completed");
+            }
+
+            return AuthResponseDto.Fail("Course still active");
         }
     }
 }

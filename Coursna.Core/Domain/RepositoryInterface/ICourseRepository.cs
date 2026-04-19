@@ -11,5 +11,6 @@ namespace Coursna.Core.Domain.RepositoryInterface
     {
         Task<List<Course>> GetTeacherCousres(string id);
         Task<List<Course>> GetPublicCoursesByTeacherAsync(string teacherId);
+        Task<List<Course>> SearchCoursesAsync(string teacherId,string searchBy,string searchString);
     }
 }

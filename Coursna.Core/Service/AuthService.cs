@@ -139,5 +139,42 @@ namespace Coursna.Core.Service
                 
          }
 
+        public async Task<AuthResponseDto> Update(string userId,RegisterTeacherDto dto)
+        {
+            var user=await _userManager.FindByIdAsync(userId);
+            if(user == null)
+            {
+                return AuthResponseDto.Fail("Null user");
+            }
+            if (!string.IsNullOrWhiteSpace(dto.FullName))
+            {
+                user.FullName = dto.FullName;
+            }
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                var result = await _userManager.ResetPasswordAsync(user, token, dto.Password);
+
+                if (!result.Succeeded)
+                {
+                    return AuthResponseDto.Fail(
+                        string.Join(",", result.Errors.Select(e => e.Description))
+                    );
+                }
+            }
+
+            var updateResult = await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                return AuthResponseDto.Fail(
+                    string.Join(",", updateResult.Errors.Select(e => e.Description))
+                );
+            }
+
+            return AuthResponseDto.Success("User updated successfully");
+        }
+
     }
 }

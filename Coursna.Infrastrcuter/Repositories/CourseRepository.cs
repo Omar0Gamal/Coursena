@@ -28,5 +28,45 @@ namespace Coursna.Infrastrcuter.Repositories
         {
            return await _context.Courses.Where(t=>t.TeacherId==id).ToListAsync();
         }
+        public async Task<List<Course>> SearchCoursesAsync(
+    string teacherId,
+    string searchBy,
+    string searchString)
+        {
+            var query = _context.Courses
+                .Include(c => c.grade)
+                .Include(c => c.subject)
+                .Where(c => c.TeacherId == teacherId && c.IsApproved);
+
+            if (string.IsNullOrWhiteSpace(searchString))
+                return await query.ToListAsync();
+
+            searchBy = searchBy?.ToLower();
+
+            switch (searchBy)
+            {
+                case "title":
+                    query = query.Where(c => c.Title.Contains(searchString));
+                    break;
+
+                case "grade":
+                    query = query.Where(c => c.grade.Name.Contains(searchString));
+                    break;
+
+                case "subject":
+                    query = query.Where(c => c.subject.Name.Contains(searchString));
+                    break;
+
+                default:
+                    
+                    query = query.Where(c =>
+                        c.Title.Contains(searchString) ||
+                        c.grade.Name.Contains(searchString) ||
+                        c.subject.Name.Contains(searchString));
+                    break;
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

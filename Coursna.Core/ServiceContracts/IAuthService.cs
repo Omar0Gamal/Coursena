@@ -13,5 +13,6 @@ namespace Coursna.Core.Contracts
         Task<AuthResponseDto> RegisterStudentAsync(RegisterStudentDto registerStudentDto);
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
         Task<AuthResponseDto> LogoutAsync();
+        Task<AuthResponseDto> Update(string userId, RegisterTeacherDto dto);
     }
 }

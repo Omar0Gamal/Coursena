@@ -37,7 +37,7 @@ namespace Coursna.Controllers
 
             return Ok(result);
         }
-        [HttpGet("{courseId}")]
+        [HttpGet("See-generated-codes/{courseId}")]
         public async Task<IActionResult> GetCodes(int courseId)
         {
            

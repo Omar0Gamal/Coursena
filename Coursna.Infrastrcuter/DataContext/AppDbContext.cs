@@ -20,6 +20,7 @@ namespace Coursna.Infrastrcuter.DataContext
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<Grade> Grades { get; set; }
         public DbSet<CourseCode> courseCodes { get; set; }
+        public DbSet<CourseReview> courseReviews { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

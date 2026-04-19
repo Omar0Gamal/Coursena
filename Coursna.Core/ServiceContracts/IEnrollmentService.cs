@@ -9,7 +9,8 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface IEnrollmentService
     {
-        Task<AuthResponseDto> EnrollByCodeAsync(string studentId, int courseId, string code);
+        Task<AuthResponseDto> EnrollByCodeAsync(string studentId, string code);
         Task<List<CourseResponseDto>> GetMyCoursesAsync(string studentId);
+        Task<AuthResponseDto> CheckCompletionAsync(string studentId, int courseId);
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Coursna.Core.Contracts;
 using Coursna.Core.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Coursna.Controllers
 {
@@ -62,6 +64,19 @@ namespace Coursna.Controllers
         public async Task<IActionResult> Logout()
         {
            var result= await _authService.LogoutAsync();
+            return Ok(result);
+        }
+        [HttpPut("update")]
+        [Authorize]
+        public async Task<IActionResult> Update(RegisterTeacherDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var result = await _authService.Update(userId, dto);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
             return Ok(result);
         }
     }

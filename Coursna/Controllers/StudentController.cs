@@ -37,7 +37,7 @@ namespace Coursna.Controllers
            
             var result = await _enrollmentService.EnrollByCodeAsync(
                 studentId,
-                dto.CourseId,
+                
                 dto.Code
             );
 
@@ -61,6 +61,20 @@ namespace Coursna.Controllers
             var studentId = _userManager.GetUserId(User);
 
             var result = await _enrollmentService.GetMyCoursesAsync(studentId);
+
+            return Ok(result);
+        }
+        [HttpPost("check-completion/{courseId}")]
+        public async Task<IActionResult> CheckCompletion(int courseId)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var result = await _enrollmentService.CheckCompletionAsync(studentId, courseId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
 
             return Ok(result);
         }

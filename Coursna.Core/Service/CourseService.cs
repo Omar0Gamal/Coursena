@@ -159,5 +159,28 @@ namespace Coursna.Core.Service
 
             return true;
         }
+        public async Task<List<CourseResponseDto>> SearchCoursesAsync(
+            string inviteCode,
+            string searchBy,
+            string searchString)
+        {
+         
+            var teacher = await _userManager.Users
+                .FirstOrDefaultAsync(t => t.InviteCode == inviteCode);
+
+            if (teacher == null)
+                return new List<CourseResponseDto>();
+
+            
+            var courses = await _courseRepository
+                .SearchCoursesAsync(teacher.Id, searchBy, searchString);
+
+            return courses.Select(c => new CourseResponseDto
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Price = c.Price
+            }).ToList();
+        }
     }
 }

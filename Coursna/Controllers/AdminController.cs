@@ -1,4 +1,5 @@
-﻿using Coursna.Core.ServiceContracts;
+﻿using Coursna.Core.Dtos;
+using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ namespace Coursna.Controllers
                 _adminService = adminService;
             }
 
-            // 👀 Get pending teachers
+          
             [HttpGet("pending-teachers")]
             public async Task<IActionResult> GetPendingTeachers()
             {
@@ -26,7 +27,7 @@ namespace Coursna.Controllers
                 return Ok(result);
             }
 
-            // ✅ Approve teacher
+          
             [HttpPost("approve-teacher/{teacherId}")]
             public async Task<IActionResult> ApproveTeacher(string teacherId)
             {
@@ -44,7 +45,7 @@ namespace Coursna.Controllers
                 return Ok(result);
             }
 
-            // ❌ Reject teacher
+            
             [HttpDelete("reject-teacher/{teacherId}")]
             public async Task<IActionResult> RejectTeacher(string teacherId)
             {
@@ -61,6 +62,36 @@ namespace Coursna.Controllers
 
                 return Ok(result);
             }
+        [HttpGet("Get-Users")]
+        public async Task<IActionResult> GetUsers()
+        {
+            var result = await _adminService.GetUsersAsync();
+            return Ok(result);
         }
+
+       
+        [HttpDelete("Delete{userId}")]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            var result = await _adminService.DeleteUserAsync(userId);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+       
+        [HttpPost("Add-User")]
+        public async Task<IActionResult> CreateUser(CreateUserDto dto)
+        {
+            var result = await _adminService.CreateUserAsync(dto);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+    }
     }
 

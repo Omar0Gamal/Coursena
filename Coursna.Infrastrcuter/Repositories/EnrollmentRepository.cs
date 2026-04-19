@@ -33,5 +33,10 @@ namespace Coursna.Infrastrcuter.Repositories
            .Select(e => e.course)
            .ToListAsync();
         }
+        public async Task<Enrollment?> GetEnrollmentAsync(string studentId, int courseId)
+        {
+            return await _Context.Enrollments
+                .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == courseId);
+        }
     }
 }

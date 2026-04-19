@@ -71,5 +71,67 @@ namespace Coursna.Core.Service
         {
             return Guid.NewGuid().ToString("N")[..6].ToUpper();
         }
+
+        public async Task<List<UserResponseDto>> GetUsersAsync()
+        {
+            var users = _userManager.Users.ToList();
+
+            var result = new List<UserResponseDto>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                result.Add(new UserResponseDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    Role = roles.FirstOrDefault()
+                });
+            }
+
+            return result;
+        }
+
+       
+        public async Task<AuthResponseDto> DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return AuthResponseDto.Fail("User not found");
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                return AuthResponseDto.Fail(
+                    string.Join(",", result.Errors.Select(e => e.Description))
+                );
+
+            return AuthResponseDto.Success("User deleted successfully");
+        }
+
+        public async Task<AuthResponseDto> CreateUserAsync(CreateUserDto dto)
+        {
+            var user = new ApplicationUser
+            {
+                UserName = dto.Email,
+                Email = dto.Email,
+                FullName = dto.FullName
+            };
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (!result.Succeeded)
+                return AuthResponseDto.Fail(
+                    string.Join(",", result.Errors.Select(e => e.Description))
+                );
+
+          
+            await _userManager.AddToRoleAsync(user, dto.Role);
+
+            return AuthResponseDto.Success("User created successfully");
+        }
     }
 }

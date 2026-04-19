@@ -11,6 +11,7 @@ namespace Coursna.Core.Domain.RepositoryInterface
     {
         Task<Enrollment?> GetActiveEnrollmentAsync(string studentId, int courseId);
         Task<List<Course>> GetStudentCoursesAsync(string studentId);
+        Task<Enrollment?> GetEnrollmentAsync(string studentId, int courseId);
     }
 }
 

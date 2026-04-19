@@ -25,6 +25,10 @@ namespace Coursna.Core.ServiceContracts
         Task<bool> ApproveCourseAsync(int id);
 
         Task<bool> RejectCourseAsync(int id);
+        Task<List<CourseResponseDto>> SearchCoursesAsync(
+            string inviteCode,
+            string searchBy,
+            string searchString);
 
     }
 }
