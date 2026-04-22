@@ -29,6 +29,7 @@ namespace Coursna.Core.ServiceContracts
             string inviteCode,
             string searchBy,
             string searchString);
-
+        Task<List<CourseResponseDto>> GetCoursesForStudentAsync(string studentId, string inviteCode);
     }
+    
 }

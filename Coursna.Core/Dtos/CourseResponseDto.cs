@@ -14,7 +14,7 @@ namespace Coursna.Core.Dtos
         public string Description { get; set; }
         public decimal Price { get; set; }
         public bool IsApproved { get; set; }
-        public string TeacherId { get; set; }
+        public string TeacherName { get; set; }
     }
         public static class CourseExtentsion
         {
@@ -27,7 +27,7 @@ namespace Coursna.Core.Dtos
                     Description = course.Description,
                     Price = course.Price,
                     IsApproved = course.IsApproved,
-                    TeacherId = course.TeacherId
+                    TeacherName = course.Teacher.FullName
                 };
             }
         }

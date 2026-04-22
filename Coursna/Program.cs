@@ -31,8 +31,8 @@ namespace Coursna
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
-                options.Password.RequireDigit = false;
-                options.Password.RequireUppercase = false;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireNonAlphanumeric = false;
             }) .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();

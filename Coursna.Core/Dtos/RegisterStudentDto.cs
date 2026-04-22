@@ -28,6 +28,7 @@ namespace Coursna.Core.Dtos
        // dy 34an 7tt el multi-tenant
         [Required]
         public string InviteCode { get; set; }
+        public int GradeId { get; set; }
     }
 }
 

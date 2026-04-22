@@ -19,14 +19,20 @@ namespace Coursna.Infrastrcuter.Repositories
 
         public async Task<List<Course>> GetPublicCoursesByTeacherAsync(string teacherId)
         {
-            return await _context.Courses
+            return await _context.Courses.Include(c=>c.Teacher)
                 .Where(c => c.IsApproved && c.TeacherId == teacherId)
                 .ToListAsync();
         }
 
         public async Task<List<Course>> GetTeacherCousres(string id)
         {
-           return await _context.Courses.Where(t=>t.TeacherId==id).ToListAsync();
+           return await _context.Courses.Include(c => c.Teacher).Where(t=>t.TeacherId==id).ToListAsync();
+        }
+        public async Task<List<Course>> GetByGradeIdAsync(int gradeId,string teacherId)
+        {
+            return await _context.Courses.Include(c=>c.Teacher)
+                .Where(c => c.IsApproved && c.GradeId == gradeId && c.TeacherId==teacherId)
+                .ToListAsync();
         }
         public async Task<List<Course>> SearchCoursesAsync(
     string teacherId,
@@ -65,7 +71,7 @@ namespace Coursna.Infrastrcuter.Repositories
                         c.subject.Name.Contains(searchString));
                     break;
             }
-
+            
             return await query.ToListAsync();
         }
     }

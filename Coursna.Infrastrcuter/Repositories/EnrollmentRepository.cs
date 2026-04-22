@@ -29,7 +29,7 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             return await _Context.Enrollments
            .Where(e => e.StudentId == studentId)
-           .Include(e => e.course)
+           .Include(e => e.course).ThenInclude(c => c.Teacher)
            .Select(e => e.course)
            .ToListAsync();
         }

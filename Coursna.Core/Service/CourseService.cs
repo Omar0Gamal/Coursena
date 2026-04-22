@@ -182,5 +182,19 @@ namespace Coursna.Core.Service
                 Price = c.Price
             }).ToList();
         }
+        public async Task<List<CourseResponseDto>> GetCoursesForStudentAsync(string studentId,string inviteCode)
+        {
+            var student = await _userManager.FindByIdAsync(studentId);
+
+            if (student?.gradeId == null)
+                return new List<CourseResponseDto>();
+            var teacher = await _userManager.Users.FirstOrDefaultAsync(u => u.InviteCode == inviteCode);
+            if (teacher == null)
+                return new List<CourseResponseDto>();
+            var courses = await _courseRepository
+                .GetByGradeIdAsync(student.gradeId.Value,teacher.Id.ToString());
+
+            return courses.Select(c => c.ToResponse()).ToList();
+        }
     }
 }

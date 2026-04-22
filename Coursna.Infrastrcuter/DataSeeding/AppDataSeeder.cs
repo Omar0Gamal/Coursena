@@ -28,9 +28,12 @@ public class AppDataSeeder
         if (!_context.Grades.Any())
         {
             _context.Grades.AddRange(
-                new Grade { Name = "Beginner" },
-                new Grade { Name = "Moderate" },
-                new Grade { Name = "Advanced" }
+                    new Grade { Id = 1, Name = "First Secondary" },
+                     new Grade { Id = 2, Name = "Second Secondary" },
+                    new Grade { Id = 3, Name = "Third Secondary" },
+                    new Grade { Id=4,Name= "First Preparatory" },
+                     new Grade { Id = 5, Name = "Second Preparatory" },
+                      new Grade { Id = 6, Name = "Third Preparatory" }
             );
         }
 

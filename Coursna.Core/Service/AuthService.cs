@@ -80,7 +80,8 @@ namespace Coursna.Core.Service
                 Email = registerStudentDto.Email,
                 FullName = registerStudentDto.FullName,
                 TeacherId =teacher.Id,
-                IsApproved = true // el student m4 m7tag admin approval 
+                IsApproved = true, // el student m4 m7tag admin approval 
+                gradeId=registerStudentDto.GradeId
             };
 
             var result = await _userManager.CreateAsync(user, registerStudentDto.Password);
