@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,15 +25,15 @@ namespace Coursna.Core.Service
         public async Task<AuthResponseDto> GenerateCodesAsync(int courseId, int count)
         {
             if (count <= 0)
-                return AuthResponseDto.Fail("Count must be greater than 0");
+               throw new BadRequestException("Count must be greater than zero");
 
             var course = await _courseRepo.GetByIdAsync(courseId);
 
             if (course == null)
-                return AuthResponseDto.Fail("Course not found");
+               throw new NotFoundException("Course not found");
 
             if (!course.IsApproved)
-                return AuthResponseDto.Fail("Course must be approved first");
+               throw new BadRequestException("Course must be approved first");
 
             var codes = new List<CourseCode>();
 

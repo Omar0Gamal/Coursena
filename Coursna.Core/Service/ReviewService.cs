@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Coursna.Core.Service
                 .GetEnrollmentAsync(studentId, dto.CourseId);
 
             if (enrollment == null)
-                return AuthResponseDto.Fail("You must enroll first");
+               throw new NotFoundException("Enrollment not found");
 
             var review = new CourseReview
             {

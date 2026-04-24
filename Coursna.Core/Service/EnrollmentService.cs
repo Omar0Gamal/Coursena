@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,30 +30,29 @@ namespace Coursna.Core.Service
         public async Task<AuthResponseDto> EnrollByCodeAsync(string studentId, string code)
         {
             if (string.IsNullOrWhiteSpace(code))
-                return AuthResponseDto.Fail("Code is required");
+                throw new NotFoundException("Code is required");
 
             var courseCode = await _codeRepo.GetByCodeAsync(code);
 
             if (courseCode == null)
-                return AuthResponseDto.Fail("Invalid code");
+                throw new NotFoundException("Invalid code");
 
             if (courseCode.IsUsed)
-                return AuthResponseDto.Fail("Code already used");
+                throw new BadRequestException("Code already used");
 
             var course = await _courseRepo.GetByIdAsync(courseCode.CourseId);
 
             if (course == null)
-                return AuthResponseDto.Fail("Course not found");
+                throw new NotFoundException("Course not found");
 
-           
             if (!course.IsApproved)
-                return AuthResponseDto.Fail("Course not available");
+                throw new NotFoundException("Course not available");
 
             var existing = await _enrollmentRepo
                 .GetActiveEnrollmentAsync(studentId, course.Id);
 
             if (existing != null)
-                return AuthResponseDto.Fail("Already enrolled");
+                throw new NotFoundException("Already enrolled");
 
             var enrollment = new Enrollment
             {
@@ -88,7 +88,7 @@ namespace Coursna.Core.Service
             var enrollment = await _enrollmentRepo.GetEnrollmentAsync(studentId, courseId);
 
             if (enrollment == null)
-                return AuthResponseDto.Fail("Enrollment not found");
+                throw new NotFoundException("Enrollment not found");
 
             
             if (DateTime.UtcNow >= enrollment.EndDate)

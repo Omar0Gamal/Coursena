@@ -41,15 +41,6 @@ namespace Coursna.Controllers
                 dto.Code
             );
 
-         
-            if (!result.IsSuccess)
-            {
-                return Problem(
-                    title: "Enrollment Failed",
-                    detail: result.Message,
-                    statusCode: 400
-                );
-            }
 
          
             return Ok(result);
@@ -70,11 +61,6 @@ namespace Coursna.Controllers
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var result = await _enrollmentService.CheckCompletionAsync(studentId, courseId);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result);
-            }
 
             return Ok(result);
         }

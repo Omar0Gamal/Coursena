@@ -27,19 +27,10 @@ namespace Coursna.Controllers
         {
             var studentId = _userManager.GetUserId(User);
 
-            try
-            {
+
                 var result = await _contentService.GetCourseContentAsync(courseId, studentId);
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Problem(
-                    title: "Access Denied",
-                    detail: ex.Message,
-                    statusCode: 403
-                );
-            }
+        
         }
     }
 }

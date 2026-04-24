@@ -3,6 +3,7 @@ using Coursna.Core.Domain.Entities;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +29,10 @@ namespace Coursna.Core.Service
             var course = await _CourseRepo.GetByIdAsync(dto.CourseId);
 
             if (course == null)
-                return AuthResponseDto.Fail("Course not found");
+                throw new NotFoundException("Course not found");
 
             if (course.TeacherId != teacherId)
-                return AuthResponseDto.Fail("Unauthorized");
+                throw new UnauthorizedException("Unauthorized");
 
             var content = dto.ToEntity();
 
@@ -47,7 +48,7 @@ namespace Coursna.Core.Service
             .GetActiveEnrollmentAsync(studentId, courseId);
 
             if (enrollment == null)
-                throw new Exception("Access denied");
+                throw new NotFoundException("Access denied");
 
             var contents = await _courseContentRepo.GetByCourseIdAsync(courseId);
 

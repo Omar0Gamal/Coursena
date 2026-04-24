@@ -5,6 +5,7 @@ using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +42,7 @@ namespace Coursna.Core.Service
             var teacher = await _userManager.FindByIdAsync(teacherId);
 
             if (teacher == null)
-                return null;
+                throw new NotFoundException("Teacher not found");
 
             return teacher.InviteCode;
         }
@@ -51,7 +52,7 @@ namespace Coursna.Core.Service
            var course=await _Repository.GetByIdAsync(id);
             if (course == null)
             {
-                throw new Exception("No course with this id");
+                throw new NotFoundException("No course with this id");
             }
             return course.ToResponse();
         }
@@ -68,9 +69,9 @@ namespace Coursna.Core.Service
         {
             var course= await _Repository.GetByIdAsync(id);
             if(course == null)
-                return false;
-            if(course.TeacherId!=teacherId)
-                return false;
+               throw new NotFoundException("No course with this id");
+            if (course.TeacherId!=teacherId)
+               throw new UnauthorizedAccessException("You are not the owner of this course");
             course.Title = dto.Title;
             course.Description = dto.Description;
              course.Price= dto.Price;
@@ -88,10 +89,10 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                return false;
+               throw new NotFoundException("No course with this id");
 
             if (course.TeacherId != teacherId)
-                return false;
+               throw new UnauthorizedAccessException("You are not the owner of this course");
 
             _Repository.DeleteAsync(course);
             await _Repository.SaveChangesAsync();
@@ -135,7 +136,7 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                return false;
+                throw new  NotFoundException("no course with this id");
 
             course.IsApproved = true;
 
@@ -150,7 +151,7 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                return false;
+                throw new NotFoundException("no course with this id");
 
             course.IsApproved = false;
 

@@ -1,6 +1,7 @@
 ﻿using Coursna.Core.Contracts;
 using Coursna.Core.Domain.IdentityEntities;
 using Coursna.Core.Dtos;
+using Coursna.Core.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -24,11 +25,7 @@ namespace Coursna.Core.Service
             var existingUser= await _userManager.FindByEmailAsync(registerTeacherDto.Email);
             if (existingUser != null)
             {
-                return new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "Email already exists"
-                };
+                throw new BadRequestException("Email already exists");
             }
             var user = new ApplicationUser
             {
@@ -40,11 +37,7 @@ namespace Coursna.Core.Service
             var result= await _userManager.CreateAsync(user,registerTeacherDto.Password);
             if (!result.Succeeded)
             {
-                return new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = string.Join(", ", result.Errors.Select(e => e.Description))
-                };
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
             }
             await _userManager.AddToRoleAsync(user, "Teacher");
             return new AuthResponseDto { IsSuccess = true, Message = "Teacher registered successfully, waiting for approval" };
@@ -56,22 +49,14 @@ namespace Coursna.Core.Service
             var existingUser = await _userManager.FindByEmailAsync(registerStudentDto.Email);
             if (existingUser != null)
             {
-                return new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "Email already exists"
-                };
+                throw new BadRequestException("Email already exists");
             }
 
             // Hna bn3mel check an el student da el teacher bta3o mawgod
             var teacher =  _userManager.Users.FirstOrDefault(t=>t.InviteCode == registerStudentDto.InviteCode);
             if (teacher == null)
             {
-                return new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "Invalid TeacherId"
-                };
+                throw new NotFoundException("Invalid TeacherId");
             }
 
             var user = new ApplicationUser
@@ -88,11 +73,7 @@ namespace Coursna.Core.Service
 
             if (!result.Succeeded)
             {
-                return new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = string.Join(", ", result.Errors.Select(e => e.Description))
-                };
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
             }
 
             await _userManager.AddToRoleAsync(user, "Student");
@@ -110,19 +91,15 @@ namespace Coursna.Core.Service
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
             {
-                return new AuthResponseDto
-                {
-                    IsSuccess = false,
-                    Message = "Invalid email or password"
-                };
+                throw new NotFoundException("Invalid email or password");
             }
             var vaildPassword = await _userManager.CheckPasswordAsync(user, loginDto.Password);
             if (!vaildPassword)
             {
-                return new AuthResponseDto { IsSuccess = false, Message = "Invalid email or password" };
+                throw new BadRequestException("Invalid email or password");
             }
             if (!user.IsApproved) {
-                return new AuthResponseDto { IsSuccess = false, Message = "Account not approved yet" };
+                throw new BadRequestException("Account not approved yet");
             }
             await _signInManager.SignInAsync(user,isPersistent: false);
             return new AuthResponseDto
@@ -145,7 +122,7 @@ namespace Coursna.Core.Service
             var user=await _userManager.FindByIdAsync(userId);
             if(user == null)
             {
-                return AuthResponseDto.Fail("Null user");
+                throw new NotFoundException("Null user");
             }
             if (!string.IsNullOrWhiteSpace(dto.FullName))
             {
@@ -169,9 +146,7 @@ namespace Coursna.Core.Service
 
             if (!updateResult.Succeeded)
             {
-                return AuthResponseDto.Fail(
-                    string.Join(",", updateResult.Errors.Select(e => e.Description))
-                );
+                throw new BadRequestException(string.Join(",", updateResult.Errors.Select(e => e.Description)));
             }
 
             return AuthResponseDto.Success("User updated successfully");

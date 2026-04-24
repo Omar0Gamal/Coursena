@@ -58,14 +58,6 @@ namespace Coursna.Controllers
 
             var success = await _courseService.UpdateCourseAsync(id, dto, teacherId);
 
-            if (!success)
-            {
-                return Problem(
-                    title: "Update Failed",
-                    detail: "Course not found or you are not allowed to update it",
-                    statusCode: StatusCodes.Status400BadRequest
-                );
-            }
 
             return Ok("Updated successfully");
         }
@@ -77,15 +69,6 @@ namespace Coursna.Controllers
 
             var success = await _courseService.DeleteCourseAsync(id, teacherId);
 
-            if (!success)
-            {
-                return Problem(
-                    title: "Delete Failed",
-                    detail: "Course not found or you are not allowed to delete it",
-                    statusCode: StatusCodes.Status400BadRequest
-                );
-            }
-
             return Ok("Deleted successfully");
         }
         [HttpGet("invite-code")]
@@ -96,10 +79,6 @@ namespace Coursna.Controllers
 
             var code = await _courseService.GetInviteCodeAsync(teacherId);
 
-            if (string.IsNullOrEmpty(code))
-            {
-                return NotFound("Invite code not found");
-            }
 
             return Ok(new { inviteCode = code });
         }
@@ -108,8 +87,6 @@ namespace Coursna.Controllers
         {
             var teacherId = _userManager.GetUserId(User);
 
-            if (string.IsNullOrEmpty(teacherId))
-                return Unauthorized();
 
             var result = await _teacherDashboardService.GetDashboardAsync(teacherId);
 

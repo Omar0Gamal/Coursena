@@ -7,6 +7,7 @@ using Coursna.Core.ServiceContracts;
 using Coursna.Infrastrcuter.DataContext;
 using Coursna.Infrastrcuter.Identity;
 using Coursna.Infrastrcuter.Repositories;
+using Coursna.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Principal;
@@ -84,7 +85,8 @@ namespace Coursna
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseMiddleware<NotFoundMiddleware>();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();

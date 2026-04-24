@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Coursna.Core.Service
         {
             if (string.IsNullOrEmpty(dto.Content))
             {
-                return AuthResponseDto.Fail("Content is required");
+                throw new BadRequestException("Message content cannot be empty");
             }
             var message = new Message
             {
