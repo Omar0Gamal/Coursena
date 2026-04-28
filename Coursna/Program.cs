@@ -7,6 +7,7 @@ using Coursna.Core.ServiceContracts;
 using Coursna.Infrastrcuter.DataContext;
 using Coursna.Infrastrcuter.Identity;
 using Coursna.Infrastrcuter.Repositories;
+using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Principal;
@@ -62,11 +63,20 @@ namespace Coursna
             builder.Services.AddScoped<ILookUpService, LookUpService>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
             builder.Services.AddSignalR();
+            builder.Services.AddScoped<IAttemptRepository, AttemptRepository>();
+            builder.Services.AddScoped<IAttemptService, AttemptService>();
+            builder.Services.AddScoped<IOptionRepository, OptionRepository>();
+            builder.Services.AddScoped<IQuestionService, QuestionService>();
+            builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+            builder.Services.AddScoped<IQuizRepository, QuizRepository>();
+            builder.Services.AddScoped<IQuizService, QuizService>();
 
             builder.Services.AddScoped<AppDataSeeder>();
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
-        
+            builder.Services.AddHangfire(config => config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Default")));
+            builder.Services.AddHangfireServer();
+
 
             var app = builder.Build();
 
@@ -91,6 +101,8 @@ namespace Coursna
 
 
             app.MapControllers();
+            app.UseHangfireDashboard("/hangfire");
+
 
             app.Run();
         }

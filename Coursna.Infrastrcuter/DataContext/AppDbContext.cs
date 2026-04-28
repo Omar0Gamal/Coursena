@@ -21,6 +21,11 @@ namespace Coursna.Infrastrcuter.DataContext
         public DbSet<Grade> Grades { get; set; }
         public DbSet<CourseCode> courseCodes { get; set; }
         public DbSet<CourseReview> courseReviews { get; set; }
+        public DbSet<Quiz> quizzes { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<Option> Options { get; set; }
+        public DbSet<QuizAttempt> QuizAttempts{ get; set; }
+        public DbSet<StudentResponse> StudentResponses { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -60,6 +65,25 @@ namespace Coursna.Infrastrcuter.DataContext
             builder.Entity<CourseCode>()
               .HasIndex(c => c.Code)
               .IsUnique();
+            //one to many rel between course and quiz
+            builder.Entity<Quiz>()
+                .HasOne(q => q.course)
+                .WithMany(u => u.quizzes)
+                .HasForeignKey(q => q.CourseId);
+            //one to many rel between quiz and questions
+            builder.Entity<Question>()
+                .HasOne(q => q.Quiz)
+                .WithMany(u => u.Questions)
+                .HasForeignKey(q => q.QuizId);
+            //one to mane rel between question and options 
+            builder.Entity<Option>()
+               .HasOne(o => o.Question)
+               .WithMany(q => q.Options)
+               .HasForeignKey(o => o.QuestionId);
+
+
+
+
         }
     }
 }

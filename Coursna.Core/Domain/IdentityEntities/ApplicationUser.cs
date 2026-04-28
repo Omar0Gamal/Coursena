@@ -31,5 +31,8 @@ namespace Coursna.Core.Domain.IdentityEntities
         // lma el student ysagel y7ot el grade 
         public int? gradeId {  get; set; }
         public Grade grade { get; set; }
+        public int? quizAttemptId { get; set; }
+        public QuizAttempt? quizAttempt { get; set; }
+
     }
 }
