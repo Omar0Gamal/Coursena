@@ -30,14 +30,6 @@ namespace Coursna.Controllers
 
             var result = await _contentService.AddContentAsync(dto, teacherId);
 
-            if (!result.IsSuccess)
-            {
-                return Problem(
-                    title: "Add Content Failed",
-                    detail: result.Message,
-                    statusCode: 400
-                );
-            }
 
             return Ok(result);
         }

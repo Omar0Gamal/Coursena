@@ -33,14 +33,7 @@ namespace Coursna.Controllers
             {
                 var result = await _adminService.ApproveTeacherAsync(teacherId);
 
-                if (!result.IsSuccess)
-                {
-                    return Problem(
-                        title: "Approve Teacher Failed",
-                        detail: result.Message,
-                        statusCode: StatusCodes.Status400BadRequest
-                    );
-                }
+
 
                 return Ok(result);
             }
@@ -51,14 +44,6 @@ namespace Coursna.Controllers
             {
                 var result = await _adminService.RejectTeacherAsync(teacherId);
 
-                if (!result.IsSuccess)
-                {
-                    return Problem(
-                        title: "Reject Teacher Failed",
-                        detail: result.Message,
-                        statusCode: StatusCodes.Status400BadRequest
-                    );
-                }
 
                 return Ok(result);
             }
@@ -75,8 +60,6 @@ namespace Coursna.Controllers
         {
             var result = await _adminService.DeleteUserAsync(userId);
 
-            if (!result.IsSuccess)
-                return BadRequest(result);
 
             return Ok(result);
         }
@@ -87,9 +70,7 @@ namespace Coursna.Controllers
         {
             var result = await _adminService.CreateUserAsync(dto);
 
-            if (!result.IsSuccess)
-                return BadRequest(result);
-
+          
             return Ok(result);
         }
     }

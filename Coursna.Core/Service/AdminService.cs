@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Coursna.Core.Exceptions;
 
 namespace Coursna.Core.Service
 {
@@ -24,18 +25,18 @@ namespace Coursna.Core.Service
             var teacher= await _userManager.FindByIdAsync(teacherId);
             if (teacher == null)
             {
-                return AuthResponseDto.Fail("Teacher not found");
+                throw new NotFoundException("Teacher not found");
 
             }
             if (teacher.IsApproved)
             {
-                return AuthResponseDto.Fail("Teacher already approved");
+                throw new BadRequestException("Teacher already approved");
             }
             teacher.IsApproved = true;
             teacher.InviteCode = GenerateInviteCode();
             var result=await _userManager.UpdateAsync(teacher);
             if (!result.Succeeded)
-                return AuthResponseDto.Fail(
+                throw new BadRequestException(
                     string.Join(", ", result.Errors.Select(e => e.Description))
                 );
 
@@ -56,12 +57,12 @@ namespace Coursna.Core.Service
             var teacher = await _userManager.FindByIdAsync(teacherId);
 
             if (teacher == null)
-                return AuthResponseDto.Fail("Teacher not found");
+                throw new NotFoundException("Teacher not found");
 
             var result = await _userManager.DeleteAsync(teacher);
 
             if (!result.Succeeded)
-                return AuthResponseDto.Fail(
+                throw new NotFoundException(
                     string.Join(", ", result.Errors.Select(e => e.Description))
                 );
 

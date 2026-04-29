@@ -20,28 +20,14 @@ namespace Coursna.Controllers
         public async Task<IActionResult> ResgisterTeacher(RegisterTeacherDto dto)
         {
             var result = await _authService.RegisterTeacherAsync(dto);
-            if (!result.IsSuccess)
-            {
-                return Problem(
-                    title: "Registration Failed",
-                    detail: result.Message,
-                    statusCode: StatusCodes.Status400BadRequest
-                );
-            }
+
             return Ok(result);
         }
         [HttpPost("register-student")]
         public async Task<IActionResult> RegisterStudent(RegisterStudentDto dto)
         {
             var result = await _authService.RegisterStudentAsync(dto);
-            if (!result.IsSuccess)
-            {
-                return Problem(
-                    title: "Registration Failed",
-                    detail: result.Message,
-                    statusCode: StatusCodes.Status400BadRequest
-                );
-            }
+   
             return Ok(result);
         }
 
@@ -50,14 +36,6 @@ namespace Coursna.Controllers
         {
             var result = await _authService.LoginAsync(dto);
 
-            if (!result.IsSuccess)
-            {
-                return Problem(
-                    title: "Authentication Failed",
-                    detail: result.Message,
-                    statusCode: StatusCodes.Status400BadRequest
-                );
-            }
             return Ok(result);
         }
         [HttpPost("Logout")]
@@ -74,8 +52,6 @@ namespace Coursna.Controllers
 
             var result = await _authService.Update(userId, dto);
 
-            if (!result.IsSuccess)
-                return BadRequest(result);
 
             return Ok(result);
         }
