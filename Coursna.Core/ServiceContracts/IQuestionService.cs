@@ -10,10 +10,10 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface IQuestionService
     {
-        Task UpdateQuestionAsync(int questionId, CreateQuestionDto dto);
-        Task DeleteQuestionAsync(int questionId);
-        Task<int> AddOptionAsync(int questionId, CreateOptionDto request);
-        Task UpdateOptionAsync(int optionId, CreateOptionDto request);
-        Task DeleteOptionAsync(int optionId);
+        Task UpdateQuestionAsync(int questionId, CreateQuestionDto dto, string teacherId);
+        Task DeleteQuestionAsync(int questionId, string teacherId);
+        Task<int> AddOptionAsync(int questionId, CreateOptionDto request, string teacherId);
+        Task UpdateOptionAsync(int optionId, CreateOptionDto request, string teacherId);
+        Task DeleteOptionAsync(int optionId, string teacherId);
     }
 }

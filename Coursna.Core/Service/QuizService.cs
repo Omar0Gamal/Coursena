@@ -2,11 +2,13 @@
 using Coursna.Core.Domain.IdentityEntities;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
+using Coursna.Core.Exceptions;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,21 +18,33 @@ namespace Coursna.Core.Service
     {
         private IRepository<Quiz> _Repository;
         private readonly IQuizRepository _quizRepository;
+        private readonly IRepository<Course> _courseRepository;
+        private readonly IEnrollmentRepository _enrollmentRepo;
 
-        public QuizService(IRepository<Quiz> repository, IQuizRepository quizrepo)
+        public QuizService(IRepository<Quiz> repository, IQuizRepository quizrepo, IRepository<Course> courseRepository, IEnrollmentRepository enrollmentRepo)
         {
             _Repository = repository;
             _quizRepository = quizrepo;
-
+            _courseRepository = courseRepository;
+            _enrollmentRepo = enrollmentRepo;
         }
 
-        public Task<QuizResponseDto> CreateQuizAsync(CreateQuizDto dto, int courseId)
+        public async Task<QuizResponseDto> CreateQuizAsync(CreateQuizDto dto,string teacherId)
         {
+            var course=await _courseRepository.GetByIdAsync(dto.CourseId);
+            if (course == null)
+            {
+                throw new Exception("course not found");
+            }
+            if(course.TeacherId != teacherId)
+            {
+                throw new Exception("you are not the teacher of this course");
+            }
             Quiz quiz = new Quiz
             {
                 Title = dto.Title,
-                CourseId = courseId,
-                Description = dto.Description,
+                CourseId = dto.CourseId,
+              
                 IsPublished = false,
                 MaxAttempts = dto.MaxAttempts,
                 TimeLimitInMinutes = dto.TimeLimitInMinutes
@@ -41,36 +55,23 @@ namespace Coursna.Core.Service
             {
                 Title = quiz.Title,
                 CourseId = quiz.CourseId,
-                Description = quiz.Description,
                 IsPublished = quiz.IsPublished,
                 MaxAttempts = quiz.MaxAttempts,
                 TimeLimitInMinutes = quiz.TimeLimitInMinutes
             };
-            return Task.FromResult(response);
-
-        }
-
-        public async Task<List<QuizResponseDto>> GetQuizzesByCourseIdAsync(int courseId)
-        {
-            var course = await _Repository.GetByIdAsync(courseId);
-            if (course == null)
-                return null;
-            var quizzes = await _quizRepository.GetQuizzesByCourseIdAsync(courseId);
-            List<QuizResponseDto> response = quizzes.Select(q => new QuizResponseDto
-            {
-                Title = q.Title,
-                CourseId = q.CourseId,
-                Description = q.Description,
-                IsPublished = q.IsPublished,
-                MaxAttempts = q.MaxAttempts,
-                TimeLimitInMinutes = q.TimeLimitInMinutes
-            }).ToList();
             return response;
 
-
         }
 
-        public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
+        
+
+
+
+
+
+
+
+public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
         {
             var quiz = await _Repository.GetByIdAsync(quizId);
             if (quiz == null)
@@ -81,7 +82,6 @@ namespace Coursna.Core.Service
             {
                 Title = quiz.Title,
                 CourseId = quiz.CourseId,
-                Description = quiz.Description,
                 IsPublished = quiz.IsPublished,
                 MaxAttempts = quiz.MaxAttempts,
                 TimeLimitInMinutes = quiz.TimeLimitInMinutes
@@ -89,19 +89,23 @@ namespace Coursna.Core.Service
             return response;
         }
 
-        public async Task<QuizWithQuestionsDto?> GetQuizWithQuestionsByIdAsync(int quizId)
+        public async Task<QuizWithQuestionsDto?> GetStudentQuizWithQuestionsByIdAsync(int quizId,string studentId)
         {
-            var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId);
+            var quiz = await _quizRepository.GetStudentQuizWithQuestionsAsync(quizId);
             if (quiz == null)
             {
                 throw new Exception("quiz not found");
             }
+            var enrollment = await _enrollmentRepo
+            .GetActiveEnrollmentAsync(studentId, quiz.CourseId);
+
+            if (enrollment == null)
+                throw new NotFoundException("Access denied");
             var response = new QuizWithQuestionsDto()
             {
                 Id = quiz.Id,
                 Title = quiz.Title,
                 CourseId = quiz.CourseId,
-                Description = quiz.Description,
                 IsPublished = quiz.IsPublished,
                 MaxAttempts = quiz.MaxAttempts,
                 TimeLimitInMinutes = quiz.TimeLimitInMinutes,
@@ -119,10 +123,13 @@ namespace Coursna.Core.Service
             return response;
         }
 
+        
 
-        public async Task<QuizResponseDto> UpdateQuizAsync(int quizId, CreateQuizDto dto)
+
+        public async Task<QuizResponseDto> UpdateQuizAsync(int quizId, CreateQuizDto dto, string teacherId)
         {
-            var quiz = await _Repository.GetByIdAsync(quizId);
+            var quiz = await _quizRepository.GetQuizForTeacherAsync(quizId, teacherId   );
+
             if (quiz == null)
             {
                 throw new Exception("quiz not found");
@@ -133,7 +140,6 @@ namespace Coursna.Core.Service
             }
 
             quiz.Title = dto.Title;
-            quiz.Description = dto.Description;
             quiz.IsPublished = dto.IsPublished;
             quiz.MaxAttempts = dto.MaxAttempts;
             quiz.TimeLimitInMinutes = dto.TimeLimitInMinutes;
@@ -143,7 +149,6 @@ namespace Coursna.Core.Service
             {
                 Title = quiz.Title,
                 CourseId = quiz.CourseId,
-                Description = quiz.Description,
                 IsPublished = quiz.IsPublished,
                 MaxAttempts = quiz.MaxAttempts,
                 TimeLimitInMinutes = quiz.TimeLimitInMinutes
@@ -151,13 +156,12 @@ namespace Coursna.Core.Service
             return response;
         }
 
-        public async Task<bool> DeleteQuizAsync(int quizId)
+        public async Task<bool> DeleteQuizAsync(int quizId, string teacherId)
         {
-            var quiz = await _Repository.GetByIdAsync(quizId);
+            var quiz = await _quizRepository.GetQuizForTeacherAsync(quizId, teacherId);
 
             if (quiz == null)
                 return false;
-
 
             _Repository.DeleteAsync(quiz);
             await _Repository.SaveChangesAsync();
@@ -165,9 +169,11 @@ namespace Coursna.Core.Service
             return true;
         }
 
-        public async Task PublishQuizAsync(int quizId)
+        public async Task PublishQuizAsync(int quizId, string teacherId)
         {
-            var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId);
+
+            var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId,teacherId);
+
             if (quiz == null)
             {
                 throw new Exception("quiz not found");
@@ -180,9 +186,9 @@ namespace Coursna.Core.Service
             await _Repository.UpdateAsync(quiz);
             await _Repository.SaveChangesAsync();
         }
-        public async Task<int> AddQuestionAsync(int quizId, CreateQuestionDto dto)
+        public async Task<int> AddQuestionAsync(int quizId, CreateQuestionDto dto, string teacherId)
         {
-            var quiz= await _Repository.GetByIdAsync(quizId);
+            var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId, teacherId);
             if (quiz == null)
             {
                 throw new KeyNotFoundException("Quiz not found.");
@@ -207,14 +213,114 @@ namespace Coursna.Core.Service
             };
             quiz.Questions.Add(question);
             await _Repository.SaveChangesAsync();
-
             return question.Id;
+
 
         }
 
-        public Task AddQuestionAsync(int quizId, QuestionDto question)
+        public async Task<List<QuizResponseDto>> GetQuizzesByCourseIdAsync(int courseId, string teacherId)
         {
-            throw new NotImplementedException();
+            var quizzes = await _quizRepository.GetQuizzesByCourseIdAsync(courseId, teacherId);
+
+            return quizzes.Select(q => new QuizResponseDto { 
+               Id= q.Id,
+               CourseId =q.CourseId,
+                Title=q.Title,
+                TimeLimitInMinutes=q.TimeLimitInMinutes,
+                IsPublished=q.IsPublished,
+                CreatedAt=q.CreatedAt,
+                MaxAttempts=q.MaxAttempts }
+              
+            ).ToList();
+        }
+
+        public async Task<List<PublishedQuizDto>> GetPublishedQuizzesByCourseIdAsyc(int courseId, string studentId)
+        {
+            var quizzes = await _quizRepository.GetPublishedByCourseIdAsync(courseId);
+
+            if (quizzes == null)
+                throw new Exception("quizzes is NULL");
+
+            var enrollment = await _enrollmentRepo
+                .GetActiveEnrollmentAsync(studentId, courseId);
+
+            if (enrollment == null)
+                throw new NotFoundException("Access denied");
+
+            foreach (var q in quizzes)
+            {
+                if (q == null)
+                    throw new Exception("quiz item is NULL");
+            }
+
+            return quizzes.Select(q => new PublishedQuizDto
+            {
+                Id = q.Id,
+                CourseId = q.CourseId,
+                Title = q.Title,
+                TimeLimitInMinutes = q.TimeLimitInMinutes
+            }).ToList();
+        }
+
+        public async Task<QuizWithQuestionsDto> GetTeacherQuizWithQuestionsByIdAsync(int quizId, string teacherId)
+        {
+            var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId, teacherId);
+            if (quiz == null)
+            {
+                throw new Exception("quiz not found");
+            }
+
+            var response = new QuizWithQuestionsDto()
+            {
+                Id = quiz.Id,
+                Title = quiz.Title,
+                CourseId = quiz.CourseId,
+                IsPublished = quiz.IsPublished,
+                MaxAttempts = quiz.MaxAttempts,
+                TimeLimitInMinutes = quiz.TimeLimitInMinutes,
+                Questions = quiz.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Title,
+                    Options = q.Options.Select(o => new OptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text
+                    }).ToList()
+                }).ToList()
+            };
+            return response;
+        }
+
+        public async Task<QuizWithAnswersDto> GetTeacherQuizWithAnswersByIdAsync(int quizId, string teacherId)
+        {
+            var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId, teacherId);
+            if (quiz == null)
+            {
+                throw new Exception("quiz not found");
+            }
+
+            var response = new QuizWithAnswersDto()
+            {
+                Id = quiz.Id,
+                Title = quiz.Title,
+                CourseId = quiz.CourseId,
+                IsPublished = quiz.IsPublished,
+                MaxAttempts = quiz.MaxAttempts,
+                TimeLimitInMinutes = quiz.TimeLimitInMinutes,
+                Questions = quiz.Questions.Select(q => new Questions
+                {
+                    Id = q.Id,
+                    Text = q.Title,
+                    Options = q.Options.Select(o => new OptionWithAnswer
+                    {
+                        Id = o.Id,
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+            return response;
         }
     }
 }

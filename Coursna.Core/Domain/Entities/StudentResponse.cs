@@ -10,9 +10,9 @@ namespace Coursna.Core.Domain.Entities
     public class StudentResponse
     {
         public int Id { get; set; }
-        //[ForeignKey("QuizAttempt")]
-        //public int QuizAttemptId { get; set; }
-        //public QuizAttempt QuizAttempt { get; set; } = null!;
+        [ForeignKey("QuizAttempt")]
+        public int QuizAttemptId { get; set; }
+        public QuizAttempt QuizAttempt { get; set; }
         [ForeignKey("Question")]
         public int QuestionId { get; set; }
         public Question Question { get; set; }

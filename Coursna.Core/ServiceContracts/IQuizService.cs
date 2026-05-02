@@ -9,13 +9,17 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface IQuizService
     {
-        Task<QuizResponseDto> CreateQuizAsync(CreateQuizDto dto, int courseId);
-        Task<List<QuizResponseDto>> GetQuizzesByCourseIdAsync(int courseId);
-        Task<QuizWithQuestionsDto> GetQuizWithQuestionsByIdAsync(int quizId);
+        public Task<QuizResponseDto> CreateQuizAsync(CreateQuizDto dto, string teacherId);
+        Task<List<QuizResponseDto>> GetQuizzesByCourseIdAsync(int courseId, string teacherId);
+        Task<QuizWithQuestionsDto> GetStudentQuizWithQuestionsByIdAsync(int quizId, string studentId);
+        Task<QuizWithQuestionsDto> GetTeacherQuizWithQuestionsByIdAsync(int quizId, string teacherId);
+        Task<QuizWithAnswersDto> GetTeacherQuizWithAnswersByIdAsync(int quizId, string teacherId);
+
         Task<QuizResponseDto?> GetQuizByIdAsync(int quizId);
-        Task<QuizResponseDto> UpdateQuizAsync(int quizId, CreateQuizDto dto);
-        Task<bool> DeleteQuizAsync(int quizId);
-        Task PublishQuizAsync(int quizId);
-        Task AddQuestionAsync(int quizId, QuestionDto question);
+        public Task<QuizResponseDto> UpdateQuizAsync(int quizId, CreateQuizDto dto, string teacherId);
+        Task<bool> DeleteQuizAsync(int quizId, string teacherId);
+        public  Task PublishQuizAsync(int quizId, string teacherId);  
+        Task<int> AddQuestionAsync(int quizId, CreateQuestionDto question, string teacherId);
+        public Task<List<PublishedQuizDto>> GetPublishedQuizzesByCourseIdAsyc(int courseId, string studentId);
     }
 }

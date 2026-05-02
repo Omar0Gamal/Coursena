@@ -9,8 +9,9 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface IAttemptService
     {
-        Task<int> StartAttemptAsync(int quizId, StartAttemptRequest request);
-        Task SaveResponseAsync(int attemptId, SaveResponseRequest request);
-        Task<AttemptResultResponse> SubmitAttemptAsync(int attemptId);
+        Task<int> StartAttemptAsync(int quizId, StartAttemptRequest request,string studentId);
+       // Task <List<AttemptResponseDto>> GetActiveAttemptResponses(int attemptId, String studentId);
+        Task SaveResponseAsync(int attemptId, SaveResponseRequest request,string studentId);
+        Task<AttemptResultResponse> SubmitAttemptAsync(int attemptId, string studentId);
     }
 }

@@ -80,7 +80,21 @@ namespace Coursna.Infrastrcuter.DataContext
                .HasOne(o => o.Question)
                .WithMany(q => q.Options)
                .HasForeignKey(o => o.QuestionId);
+            //one to mane rel between attempt and responses
+            builder.Entity<StudentResponse>()
+               .HasOne(r => r.QuizAttempt)
+               .WithMany(a => a.Responses)
+               .HasForeignKey(r => r.QuizAttemptId);
 
+            
+            builder.Entity<QuizAttempt>()
+              .HasOne(r => r.Student)
+              .WithMany(a => a.QuizAttempts)
+              .HasForeignKey(r => r.StudentId);
+
+            builder.Entity<Quiz>()
+                .Property(q => q.IsPublished)
+                .HasDefaultValue(false);
 
 
 

@@ -8,9 +8,8 @@ namespace Coursna.Core.Dtos
 {
     public class AttemptResultResponse
     {
-        int AttemptId { get; set; }
-        decimal TotalScore { get; set; }
-        bool Passed { get; set; }
-        DateTime CompletedAt { get; set; }
+     public int AttemptId { get; set; }
+     public decimal TotalScore { get; set; }
+     public  DateTime CompletedAt { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Coursna.Infrastrcuter.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Coursna.Infrastrcuter.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260501142035_quizEntities")]
+    partial class quizEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -328,10 +331,11 @@ namespace Coursna.Infrastrcuter.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Description")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsPublished")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxAttempts")
                         .HasColumnType("int");
@@ -375,13 +379,11 @@ namespace Coursna.Infrastrcuter.Migrations
 
                     b.Property<string>("StudentId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("QuizId");
-
-                    b.HasIndex("StudentId");
 
                     b.ToTable("QuizAttempts");
                 });
@@ -500,6 +502,9 @@ namespace Coursna.Infrastrcuter.Migrations
                     b.Property<int?>("gradeId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("quizAttemptId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -513,6 +518,8 @@ namespace Coursna.Infrastrcuter.Migrations
                     b.HasIndex("TeacherId");
 
                     b.HasIndex("gradeId");
+
+                    b.HasIndex("quizAttemptId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -787,15 +794,7 @@ namespace Coursna.Infrastrcuter.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Coursna.Core.Domain.IdentityEntities.ApplicationUser", "Student")
-                        .WithMany("QuizAttempts")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Quiz");
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Coursna.Core.Domain.Entities.StudentResponse", b =>
@@ -828,9 +827,15 @@ namespace Coursna.Infrastrcuter.Migrations
                         .WithMany()
                         .HasForeignKey("gradeId");
 
+                    b.HasOne("Coursna.Core.Domain.Entities.QuizAttempt", "quizAttempt")
+                        .WithMany()
+                        .HasForeignKey("quizAttemptId");
+
                     b.Navigation("Teacher");
 
                     b.Navigation("grade");
+
+                    b.Navigation("quizAttempt");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -923,8 +928,6 @@ namespace Coursna.Infrastrcuter.Migrations
                     b.Navigation("Courses");
 
                     b.Navigation("Enrollments");
-
-                    b.Navigation("QuizAttempts");
 
                     b.Navigation("ReceivedMessages");
 

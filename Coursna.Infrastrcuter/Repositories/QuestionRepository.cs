@@ -17,6 +17,15 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             _context = context;
         }
+
+        public async Task<Question?> GetByIdWithQuizAndCourseForTeacherAsync(int id, string teacherId)
+        {
+            var question = await _context.Questions.Include(q => q.Quiz).
+                ThenInclude(q => q.course).
+                FirstOrDefaultAsync(q => q.Id == id && q.Quiz.course.TeacherId == teacherId);
+            return question;
+        }
+
         public async Task<Question?> GetByIdWithQuizAsync(int id)
         {
           var question = await _context.Questions.Include(q => q.Quiz).FirstOrDefaultAsync(q => q.Id == id);

@@ -1,4 +1,5 @@
 ﻿using Coursna.Core.Domain.Enums;
+using Coursna.Core.Domain.IdentityEntities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +13,12 @@ namespace Coursna.Core.Domain.Entities
         public int Id { get; set; }
         public int QuizId { get; set; }
         public string StudentId { get; set; }
+        public ApplicationUser Student { get; set; }
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
         public decimal CurrentScore { get; set; }
         public AttemptStatus Status { get; set; } = AttemptStatus.InProgress;
-        public Quiz Quiz { get; set; } 
+        public Quiz? Quiz { get; set; } 
         public List<StudentResponse> Responses{ get; set; } = new List<StudentResponse>();
         
         public bool IsTimeExpired()

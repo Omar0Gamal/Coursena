@@ -17,9 +17,11 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             _context = context;
         }
-        public async Task<Option?> GetByIdWithQuestionAndQuizAsync(int id)
+        public async Task<Option?> GetByIdWithQuestionAndQuizAsync(int id, string teacherId)
         {
-            var option = await _context.Options.Include(o => o.Question).ThenInclude(q => q.Quiz).FirstOrDefaultAsync(o => o.Id == id);
+            var option = await _context.Options.Include(o => o.Question).ThenInclude(q => q.Quiz).
+                ThenInclude(q => q.course).
+                FirstOrDefaultAsync(o => o.Id == id && o.Question.Quiz.course.TeacherId == teacherId);
             return option;
         }
     }

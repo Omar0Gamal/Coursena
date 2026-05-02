@@ -18,19 +18,39 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             _context = context;
         }
-        public async Task<Quiz?> GetQuizWithQuestionsAsync(int quizId)
+        public async Task<Quiz?> GetQuizWithQuestionsAsync(int quizId, string teacherId)
         {
             var quiz= await _context.quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Options)
-                .FirstOrDefaultAsync(q => q.Id == quizId);
+                .FirstOrDefaultAsync(q => q.Id == quizId && q.course.TeacherId == teacherId);
             return quiz;
         }
 
-        public async Task<List<Quiz>> GetQuizzesByCourseIdAsync(int courseId)
+        public async Task<List<Quiz>> GetQuizzesByCourseIdAsync(int courseId, string teacherId)
         {
-           return await _context.quizzes.Where(q => q.CourseId == courseId).ToListAsync();
+           return await _context.quizzes.Where(q => q.CourseId == courseId&& q.course.TeacherId==teacherId).ToListAsync();
+        }
+        public async Task<List<Quiz>> GetPublishedByCourseIdAsync(int courseId)
+        {
+            var query = _context.quizzes.Where(q => q.CourseId == courseId && q.IsPublished);
+
+
+            return await query.OrderByDescending(q => q.CreatedAt).ToListAsync();
+        }
+        public async Task<Quiz?> GetQuizForTeacherAsync(int quizId, string teacherId)
+        {
+            return await _context.quizzes
+                .FirstOrDefaultAsync(q => q.Id == quizId && q.course.TeacherId == teacherId);
         }
 
+        public async Task<Quiz> GetStudentQuizWithQuestionsAsync(int quizId)
+        {
+        var quiz = await _context.quizzes
+                .Include(q => q.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == quizId );
+            return quiz;
+        }
     }
 }

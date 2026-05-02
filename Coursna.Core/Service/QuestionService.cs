@@ -26,11 +26,11 @@ namespace Coursna.Core.Service
 
 
         }
-    public async Task UpdateQuestionAsync(int questionId, CreateQuestionDto dto)
+    public async Task UpdateQuestionAsync(int questionId, CreateQuestionDto dto, string teacherId)
         {
-            var question = await _questionRepository.GetByIdWithQuizAsync(questionId)
-                ?? throw new KeyNotFoundException("Question not found.");
 
+            var question = await _questionRepository.GetByIdWithQuizAndCourseForTeacherAsync(questionId, teacherId)
+                ?? throw new KeyNotFoundException("Question not found.");
             if (question.Quiz.IsPublished)
                 throw new InvalidOperationException("Cannot modify a question in a published quiz.");
 
@@ -44,9 +44,9 @@ namespace Coursna.Core.Service
         }
 
 
-        public async Task DeleteQuestionAsync(int questionId)
+        public async Task DeleteQuestionAsync(int questionId, string teacherId)
         {
-            var question = await _questionRepository.GetByIdWithQuizAsync(questionId)
+            var question = await _questionRepository.GetByIdWithQuizAndCourseForTeacherAsync(questionId, teacherId)
                 ?? throw new KeyNotFoundException("Question not found.");
             if (question.Quiz.IsPublished)
                 throw new InvalidOperationException("Cannot delete a question from a published quiz.");
@@ -55,10 +55,11 @@ namespace Coursna.Core.Service
 
         }
 
-        public async Task<int> AddOptionAsync(int questionId, CreateOptionDto request)
+        public async Task<int> AddOptionAsync(int questionId, CreateOptionDto request, string teacherId)
         {
-            var question = await _questionRepository.GetByIdWithQuizAsync(questionId)
+            var question = await _questionRepository.GetByIdWithQuizAndCourseForTeacherAsync(questionId, teacherId)
                 ?? throw new KeyNotFoundException("Question not found.");
+            
             if (question.Quiz.IsPublished)
                 throw new InvalidOperationException("Cannot add an option to a question in a published quiz.");
             var option = new Option
@@ -74,10 +75,11 @@ namespace Coursna.Core.Service
 
         }
 
-        public async Task UpdateOptionAsync(int optionId, CreateOptionDto request)
+        public async Task UpdateOptionAsync(int optionId, CreateOptionDto request, string teacherId)
         {
-            var option =await  _optionRepository.GetByIdWithQuestionAndQuizAsync(optionId)
+            var option =await  _optionRepository.GetByIdWithQuestionAndQuizAsync(optionId,teacherId)
                 ?? throw new KeyNotFoundException("Option not found.");
+
             if (option.Question.Quiz.IsPublished)
             {
                 throw new InvalidOperationException("Cannot modify an option in a published quiz.");
@@ -91,10 +93,11 @@ namespace Coursna.Core.Service
 
         }
 
-        public async Task DeleteOptionAsync(int optionId)
+        public async Task DeleteOptionAsync(int optionId, string teacherId)
         {
-            var option = await _optionRepository.GetByIdWithQuestionAndQuizAsync(optionId)
+            var option = await _optionRepository.GetByIdWithQuestionAndQuizAsync(optionId,teacherId)
                 ?? throw new KeyNotFoundException("Option not found.");
+
             if (option.Question.Quiz.IsPublished)
             {
                 throw new InvalidOperationException("Cannot delete an option from a published quiz.");

@@ -38,5 +38,13 @@ namespace Coursna.Infrastrcuter.Repositories
                          .ThenInclude(q => q.Options)
                  .FirstOrDefaultAsync(a => a.Id == id);
         }
+
+        public async Task<int> GetAttemptCountAsync(int quizId, string StudentId)
+        {
+
+            return await _context.QuizAttempts
+                .CountAsync(a => a.QuizId == quizId && a.StudentId == StudentId);
+        }
+
     }
 }

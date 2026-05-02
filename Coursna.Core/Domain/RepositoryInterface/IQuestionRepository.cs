@@ -10,5 +10,7 @@ namespace Coursna.Core.Domain.RepositoryInterface
     public interface IQuestionRepository
     {
         public Task<Question?> GetByIdWithQuizAsync(int id);
+        public Task<Question?> GetByIdWithQuizAndCourseForTeacherAsync(int id, string teacherId);
+
     }
 }

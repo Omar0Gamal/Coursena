@@ -13,7 +13,7 @@ namespace Coursna.Core.Dtos
         public string Title { get; set; }
         public int Points { get; set; }
         public int QuizId { get; set; }
-        public List<Option> Options { get; set; }
+        public List<Options> Options { get; set; }
 
     }
     public class Options
