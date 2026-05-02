@@ -33,7 +33,8 @@ namespace Coursna.Core.Service
             course.IsApproved = false;
             await _Repository.AddAsync(course);
             await _Repository.SaveChangesAsync();
-            return course.ToResponse();
+            var createdCourse = await _courseRepository.GetByIdWithTeacherAsync(course.Id);
+            return createdCourse.ToResponse();
 
         }
 
@@ -124,11 +125,9 @@ namespace Coursna.Core.Service
         }
         public async Task<List<CourseResponseDto>> GetAllCoursesAsync()
         {
-            var courses = await _Repository.GetAllAsync();
+            var courses = await _courseRepository.GetPendingCoursesAsync();
 
-            return courses
-                .Select(c => c.ToResponse())
-                .ToList();
+            return courses.Select(c => c.ToResponse()).ToList();
         }
 
         public async Task<bool> ApproveCourseAsync(int id)

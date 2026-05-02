@@ -44,14 +44,14 @@ namespace Coursna
                 options.AccessDeniedPath = "/account/denied";
             });
             builder.Services.AddScoped<IIdentitySeeder, IdentitySeeder>();
-            builder.Services.AddScoped<IAuthService, AuthService>();
+          
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<IcourseRepository, CourseRepository>();
             builder.Services.AddScoped<ICourseService, CourseService>();
             builder.Services.AddScoped<ICourseCodeRepository, CourseCodeRepository>();
             builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
-
+            builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ICourseCodeService, CourseCodeService>();
             builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
             builder.Services.AddScoped<ICourseContentRepository, CourseContentRepository>();

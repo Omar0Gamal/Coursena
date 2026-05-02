@@ -74,5 +74,18 @@ namespace Coursna.Infrastrcuter.Repositories
             
             return await query.ToListAsync();
         }
+        public async Task<Course?> GetByIdWithTeacherAsync(int id)
+        {
+            return await _context.Courses
+                .Include(c => c.Teacher)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+        public async Task<List<Course>> GetPendingCoursesAsync()
+        {
+            return await _context.Courses
+                .Include(c => c.Teacher)
+                .Where(c => !c.IsApproved)
+                .ToListAsync();
+        }
     }
 }
