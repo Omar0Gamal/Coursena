@@ -18,13 +18,13 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             _context = context;
         }
-        public async Task<Quiz?> GetQuizWithQuestionsAsync(int quizId, string teacherId)
+        public async Task<Quiz> GetQuizWithQuestionsAsync(int quizId, string teacherId)
         {
             var quiz= await _context.quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(q => q.Id == quizId && q.course.TeacherId == teacherId);
-            return quiz;
+            return quiz ?? throw new KeyNotFoundException("Quiz not found.");
         }
 
         public async Task<List<Quiz>> GetQuizzesByCourseIdAsync(int courseId, string teacherId)

@@ -1,5 +1,6 @@
 ﻿using Coursna.Core.Domain.Entities;
 using Coursna.Core.Domain.RepositoryInterface;
+using Coursna.Core.Dtos;
 using Coursna.Infrastrcuter.DataContext;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Coursna.Infrastrcuter.Repositories
 {
-    public class AttemptRepository:IAttemptRepository
+    public class AttemptRepository : IAttemptRepository
     {
         private readonly AppDbContext _context;
 
@@ -29,14 +30,14 @@ namespace Coursna.Infrastrcuter.Repositories
 
         }
 
-        public async Task<QuizAttempt> GetByIdWithFullQuizDataAsync(int id)
+        public async Task<QuizAttempt> GetByIdWithFullQuizDataAsync(int id, string studentId)
         {
             return await _context.QuizAttempts
                  .Include(a => a.Responses)
                  .Include(a => a.Quiz)
                      .ThenInclude(q => q.Questions)
                          .ThenInclude(q => q.Options)
-                 .FirstOrDefaultAsync(a => a.Id == id);
+                 .FirstOrDefaultAsync(a => a.Id == id && a.StudentId == studentId);
         }
 
         public async Task<int> GetAttemptCountAsync(int quizId, string StudentId)
@@ -45,6 +46,7 @@ namespace Coursna.Infrastrcuter.Repositories
             return await _context.QuizAttempts
                 .CountAsync(a => a.QuizId == quizId && a.StudentId == StudentId);
         }
-
     }
 }
+
+

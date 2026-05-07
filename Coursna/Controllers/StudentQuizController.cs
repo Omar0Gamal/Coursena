@@ -43,12 +43,12 @@ namespace Coursna.Controllers
 
         // POST: /api/v1/student/quizzes/{quizId}/attempts
         [HttpPost("quizzes/{quizId}/attempts")]
-        public async Task<IActionResult> StartAttempt(int quizId, [FromBody] StartAttemptRequest request)
+        public async Task<IActionResult> StartAttempt(int quizId)
         {
             var studentId = _userManager.GetUserId(User);
             try
             {
-                var attemptId = await _attemptService.StartAttemptAsync(quizId, request, studentId);
+                var attemptId = await _attemptService.StartAttemptAsync(quizId,studentId);
                 // Returns the location of the new resource
                 return Created($"/api/v1/student/attempts/{attemptId}", new { AttemptId = attemptId });
             }
@@ -56,7 +56,20 @@ namespace Coursna.Controllers
             catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
-
+        // GET: /api/v1/student/attempts/{attemptId}/questions
+        [HttpGet("attempts/{attemptId}/questions")]
+        public async Task<IActionResult> GetAttemptQuestions(int attemptId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+                // This returns the quiz questions and options specifically for this attempt
+                var questions = await _attemptService.GetAttemptQuestionsAsync(attemptId, studentId);
+                return Ok(questions);
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+        }
         // PATCH: /api/v1/student/attempts/{attemptId}/responses
         // Used for the "Heartbeat" auto-save feature in React
         [HttpPatch("attempts/{attemptId}/responses")]
@@ -85,6 +98,20 @@ namespace Coursna.Controllers
             }
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
             catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+        // GET: /api/v1/student/attempts/{attemptId}/result
+        [HttpGet("attempts/{attemptId}/result")]
+        public async Task<IActionResult> GetAttemptResult(int attemptId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+             
+                var result = await _attemptService.GetAttemptResultAsync(attemptId, studentId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
         }
 
         #endregion

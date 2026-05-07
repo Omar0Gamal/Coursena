@@ -17,18 +17,20 @@ namespace Coursna.Core.Service
     {
 
         private readonly IAttemptRepository _attemptRepo;
-        //private readonly IQuizRepository _quizRepo;
         private readonly IRepository<QuizAttempt> _repository ;
         private readonly IRepository<Quiz> _quizRepo;
+        private readonly IQuizRepository _quizRepoCustom;
         private readonly IBackgroundJobClient _backgroundJobs;
         private readonly IEnrollmentRepository _enrollmentRepo;
-        public AttemptService(IAttemptRepository attemptRepo, IRepository<Quiz> quizRepo, IRepository<QuizAttempt> repository, IEnrollmentRepository enrollmentRepo, IBackgroundJobClient backgroundJobs)
+        public AttemptService(IAttemptRepository attemptRepo, IRepository<Quiz> quizRepo, IRepository<QuizAttempt> repository, IEnrollmentRepository enrollmentRepo, IQuizRepository quizRepoCustom , IBackgroundJobClient backgroundJobClient)
         {
             _attemptRepo = attemptRepo;
             _quizRepo = quizRepo;
             _repository = repository;
+            _quizRepoCustom = quizRepoCustom;
             _enrollmentRepo = enrollmentRepo;
-            _backgroundJobs = backgroundJobs;
+            _backgroundJobs = backgroundJobClient;
+
 
         }
 
@@ -36,7 +38,7 @@ namespace Coursna.Core.Service
         {
             
 
-            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId)
+            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId,studentId)
                 ?? throw new KeyNotFoundException("Attempt not found.");
 
             if (studentId != attempt.StudentId)
@@ -81,7 +83,7 @@ namespace Coursna.Core.Service
         
 
 
-        public async Task<int> StartAttemptAsync(int quizId, StartAttemptRequest request,string studentId)
+        public async Task<int> StartAttemptAsync(int quizId, string studentId)
         {
             var quiz = await _quizRepo.GetByIdAsync(quizId)
                 ?? throw new KeyNotFoundException("Quiz not found.");
@@ -95,13 +97,13 @@ namespace Coursna.Core.Service
                 throw new InvalidOperationException("Cannot start an unpublished quiz.");
 
             
-            var activeAttempt = await _attemptRepo.GetActiveAttemptAsync(quizId, request.StudentId);
+            var activeAttempt = await _attemptRepo.GetActiveAttemptAsync(quizId, studentId);
             if (activeAttempt != null)
                 throw new InvalidOperationException("You already have an active attempt for this quiz.");
 
             if (quiz.MaxAttempts > 0)
             {
-                var previousAttemptsCount = await _attemptRepo.GetAttemptCountAsync(quizId, request.StudentId);
+                var previousAttemptsCount = await _attemptRepo.GetAttemptCountAsync(quizId, studentId);
 
                 if (previousAttemptsCount >= quiz.MaxAttempts)
                 {
@@ -113,7 +115,7 @@ namespace Coursna.Core.Service
                 var attempt = new QuizAttempt
                 {
                     QuizId = quizId,
-                    StudentId = request.StudentId,
+                    StudentId = studentId,
                     Status = AttemptStatus.InProgress,
                     StartedAt = DateTime.UtcNow
                 };
@@ -128,18 +130,45 @@ namespace Coursna.Core.Service
 
 
             }
-        
+        public async Task<QuizWithQuestionsDto> GetAttemptQuestionsAsync(int attemptId, string studentId)
+        {
+            // 1. Fetch the attempt and include the Quiz + Questions + Options
+            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId,studentId);
+
+
+            // 2. Security Check
+            if (attempt == null)
+                throw new KeyNotFoundException("Attempt not found.");
+
+            if (attempt.Status != AttemptStatus.InProgress || attempt.IsTimeExpired())
+                throw new UnauthorizedAccessException("This attempt is closed.");
+
+            return new QuizWithQuestionsDto
+            {
+                Id = attempt.Quiz.Id,
+                Title = attempt.Quiz.Title,
+                CourseId = attempt.Quiz.CourseId,
+                IsPublished = attempt.Quiz.IsPublished,
+                TimeLimitInMinutes = attempt.Quiz.TimeLimitInMinutes,
+                Questions = attempt.Quiz.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Title,
+                    Options = q.Options.Select(o => new OptionDto
+                    {
+                        Id = o.Id,
+                        Text = o.Text
+                    }).ToList()
+                }).ToList()
+            };
+        }
 
         public async Task<AttemptResultResponse> SubmitAttemptAsync(int attemptId,string studentId)
         {
 
-            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId)
+            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId,studentId)
                ?? throw new KeyNotFoundException("Attempt not found.");
-            if (studentId != attempt.StudentId)
-            {
-                throw new UnauthorizedAccessException("student not applicable");
-
-            }
+ 
             var enrollment = await _enrollmentRepo
             .GetActiveEnrollmentAsync(studentId, attempt.Quiz.CourseId);
 
@@ -172,6 +201,29 @@ namespace Coursna.Core.Service
             return new AttemptResultResponse
             {
                 AttemptId = attempt.Id,
+                TotalScore = attempt.CurrentScore,
+                CompletedAt = attempt.CompletedAt.Value
+            };
+        }
+        public async Task<AttemptResultResponse> GetAttemptResultAsync(int attemptId, string studentId)
+        {
+            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId, studentId)
+                 ?? throw new KeyNotFoundException("Attempt not found.");
+
+            if (attempt == null) throw new KeyNotFoundException("Attempt not found.");
+            var enrollment = await _enrollmentRepo
+                .GetActiveEnrollmentAsync(studentId, attempt.Quiz.CourseId);
+            if (enrollment == null)
+                throw new NotFoundException("Access denied");   
+            // If the timer is up but the job hasn't run yet, we still treat it as closed
+            if (attempt.Status != AttemptStatus.Completed && attempt.CompletedAt > DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("Quiz is still in progress.");
+            }
+
+
+            return new AttemptResultResponse
+            {
                 TotalScore = attempt.CurrentScore,
                 CompletedAt = attempt.CompletedAt.Value
             };
