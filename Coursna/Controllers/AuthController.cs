@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace Coursna.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -16,14 +16,14 @@ namespace Coursna.Controllers
         {
             _authService = authService;
         }
-        [HttpPost("register-teacher")]
+        [HttpPost("register/teacher")]
         public async Task<IActionResult> ResgisterTeacher(RegisterTeacherDto dto)
         {
             var result = await _authService.RegisterTeacherAsync(dto);
 
             return Ok(result);
         }
-        [HttpPost("register-student")]
+        [HttpPost("register/student")]
         public async Task<IActionResult> RegisterStudent(RegisterStudentDto dto)
         {
             var result = await _authService.RegisterStudentAsync(dto);
@@ -38,13 +38,13 @@ namespace Coursna.Controllers
 
             return Ok(result);
         }
-        [HttpPost("Logout")]
+        [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
            var result= await _authService.LogoutAsync();
             return Ok(result);
         }
-        [HttpPut("update")]
+        [HttpPut("profile")]
         [Authorize]
         public async Task<IActionResult> Update(RegisterTeacherDto dto)
         {

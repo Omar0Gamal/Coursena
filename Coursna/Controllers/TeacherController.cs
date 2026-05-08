@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/teacher")]
+    [Route("api/v1/teacher")]
     [Authorize(Roles = "Teacher")]
     public class TeacherController : ControllerBase
     {
@@ -29,7 +29,7 @@ namespace Coursna.Controllers
 
             return Ok(result);
         }
-        [HttpGet("See-generated-codes/{courseId}")]
+        [HttpGet("courses/{courseId}/invite-codes")]
         public async Task<IActionResult> GetCodes(int courseId)
         {
            

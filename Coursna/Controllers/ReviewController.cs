@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/reviews")]
+    [Route("api/v1/reviews")]
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
@@ -22,7 +22,7 @@ namespace Coursna.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost("Add-Review")]
+        [HttpPost]
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> AddReview(CreateReviewDto dto)
         {
@@ -34,7 +34,7 @@ namespace Coursna.Controllers
             return Ok(result);
         }
 
-        [HttpGet("See-Reviews{courseId}")]
+        [HttpGet("/api/v1/courses/{courseId}/reviews")]
         [AllowAnonymous]
         public async Task<IActionResult> GetReviews(int courseId)
         {

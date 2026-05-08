@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/messages")]
+    [Route("api/v1/messages")]
     [Authorize]
     public class MessageController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace Coursna.Controllers
             _messageService = messageService;
         }
 
-        [HttpGet("History{userId}")]
+        [HttpGet("history/{userId}")]
         public async Task<IActionResult> GetConversation(string userId)
         {
             var currentUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
