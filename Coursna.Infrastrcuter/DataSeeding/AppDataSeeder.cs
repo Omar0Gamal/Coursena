@@ -29,11 +29,11 @@ public class AppDataSeeder
         {
             _context.Grades.AddRange(
                     new Grade { Name = "First Secondary" },
-                     new Grade {Name = "Second Secondary" },
+                    new Grade { Name = "Second Secondary" },
                     new Grade { Name = "Third Secondary" },
-                    new Grade {Name= "First Preparatory" },
-                     new Grade { Name = "Second Preparatory" },
-                      new Grade { Name = "Third Preparatory" }
+                    new Grade { Name= "First Preparatory" },
+                    new Grade { Name = "Second Preparatory" },
+                    new Grade { Name = "Third Preparatory" }
             );
         }
 

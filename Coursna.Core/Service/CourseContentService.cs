@@ -24,7 +24,7 @@ namespace Coursna.Core.Service
             _enrollmentRepo = enrollmentRepo;
         }
 
-        public async Task<AuthResponseDto> AddContentAsync(CreateContentDto dto, string teacherId)
+        public async Task<ApiResponseDto> AddContentAsync(CreateContentDto dto, string teacherId)
         {
             var course = await _CourseRepo.GetByIdAsync(dto.CourseId);
 
@@ -39,7 +39,7 @@ namespace Coursna.Core.Service
             await _courseContentRepo.AddAsync(content);
             await _courseContentRepo.SaveChangesAsync();
 
-            return AuthResponseDto.Success("Content added successfully");
+            return ApiResponseDto.Success("Content added successfully");
         }
 
         public async Task<List<CourseContentResponseDto>> GetCourseContentAsync(int courseId, string studentId)

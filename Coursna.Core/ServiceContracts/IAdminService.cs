@@ -10,10 +10,10 @@ namespace Coursna.Core.ServiceContracts
     public interface IAdminService
     {
         Task<List<TeacherResponseDto>> GetPendingTeachersAsync();
-        Task<AuthResponseDto> ApproveTeacherAsync(string teacherId);
-        Task<AuthResponseDto> RejectTeacherAsync(string teacherId);
+        Task<ApiResponseDto> ApproveTeacherAsync(string teacherId);
+        Task<ApiResponseDto> RejectTeacherAsync(string teacherId);
         Task<List<UserResponseDto>> GetUsersAsync();
-        Task<AuthResponseDto> DeleteUserAsync(string userId);
-        Task<AuthResponseDto> CreateUserAsync(CreateUserDto dto);
+        Task<ApiResponseDto> DeleteUserAsync(string userId);
+        Task<ApiResponseDto> CreateUserAsync(CreateUserDto dto);
     }
 }

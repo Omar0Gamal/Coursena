@@ -28,7 +28,7 @@ namespace Coursna.Core.Service
                 .ToList();
         }
 
-        public async Task<AuthResponseDto> SendMessageAsync(string senderId, SendMessageDto dto)
+        public async Task<ApiResponseDto> SendMessageAsync(string senderId, SendMessageDto dto)
         {
             if (string.IsNullOrEmpty(dto.Content))
             {
@@ -42,7 +42,7 @@ namespace Coursna.Core.Service
                 SentAt = DateTime.UtcNow
             };
             await _messageRepo.AddAsync(message);
-            return AuthResponseDto.Success("Message sent");
+            return ApiResponseDto.Success("Message sent");
         }
     }
 }

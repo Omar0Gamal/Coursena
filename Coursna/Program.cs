@@ -14,6 +14,10 @@ using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Principal;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 
 namespace Coursna
 {
@@ -29,7 +33,39 @@ namespace Coursna
            
             builder.Services.AddEndpointsApiExplorer();
 
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Coursna API",
+                    Version = "v1"
+                });
+
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter JWT Token"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+            });
 
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
@@ -41,20 +77,16 @@ namespace Coursna
                 options.Password.RequireNonAlphanumeric = false;
             }) .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
-            builder.Services.ConfigureApplicationCookie(options =>
-            {
-                options.LoginPath = "/account/login";
-                options.AccessDeniedPath = "/account/denied";
-            });
+       
             builder.Services.AddScoped<IIdentitySeeder, IdentitySeeder>();
-            builder.Services.AddScoped<IAuthService, AuthService>();
+          
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<IcourseRepository, CourseRepository>();
             builder.Services.AddScoped<ICourseService, CourseService>();
             builder.Services.AddScoped<ICourseCodeRepository, CourseCodeRepository>();
             builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
-
+            builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ICourseCodeService, CourseCodeService>();
             builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
             builder.Services.AddScoped<ICourseContentRepository, CourseContentRepository>();
@@ -65,6 +97,7 @@ namespace Coursna
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
             builder.Services.AddScoped<ILookUpService, LookUpService>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
+            builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IAttemptRepository, AttemptRepository>();
             builder.Services.AddScoped<IAttemptService, AttemptService>();
@@ -75,7 +108,38 @@ namespace Coursna
             builder.Services.AddScoped<IQuizService, QuizService>();
             builder.Services.AddScoped<IQuizTimeoutJob, QuizTimeoutJob>();
             builder.Services.AddScoped<AppDataSeeder>();
-            builder.Services.AddAuthentication();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("ReactPolicy", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:3000") 
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials(); 
+                });
+            });
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }) .AddJwtBearer(options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = builder.Configuration["JWT:Issuer"],
+                            ValidAudience = builder.Configuration["JWT:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                        };
+                    });
+
             builder.Services.AddAuthorization();
             builder.Services.AddHangfire(config => config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Default")));
             builder.Services.AddHangfireServer();
@@ -100,6 +164,7 @@ namespace Coursna
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseMiddleware<NotFoundMiddleware>();
             app.UseHttpsRedirection();
+            app.UseCors("ReactPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
 

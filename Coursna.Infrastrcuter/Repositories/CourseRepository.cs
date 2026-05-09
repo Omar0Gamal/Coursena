@@ -28,50 +28,56 @@ namespace Coursna.Infrastrcuter.Repositories
         {
            return await _context.Courses.Include(c => c.Teacher).Where(t=>t.TeacherId==id).ToListAsync();
         }
-        public async Task<List<Course>> GetByGradeIdAsync(int gradeId,string teacherId)
+        public async Task<List<Course>> GetByGradeIdAsync(int gradeId)
         {
-            return await _context.Courses.Include(c=>c.Teacher)
-                .Where(c => c.IsApproved && c.GradeId == gradeId && c.TeacherId==teacherId)
+            return await _context.Courses
+                .Include(c => c.Teacher)
+                .Where(c => c.IsApproved && c.GradeId == gradeId)
                 .ToListAsync();
         }
-        public async Task<List<Course>> SearchCoursesAsync(
-    string teacherId,
-    string searchBy,
-    string searchString)
+        public async Task<List<Course>> SearchAsync(
+       string? teacherId,
+       int? gradeId,
+       bool isPublic,
+       string? searchBy,
+       string? searchString)
         {
             var query = _context.Courses
                 .Include(c => c.grade)
                 .Include(c => c.subject)
-                .Where(c => c.TeacherId == teacherId && c.IsApproved);
+                .Include(c => c.Teacher)
+                .AsQueryable();
 
-            if (string.IsNullOrWhiteSpace(searchString))
-                return await query.ToListAsync();
-
-            searchBy = searchBy?.ToLower();
-
-            switch (searchBy)
+            if (isPublic)
             {
-                case "title":
-                    query = query.Where(c => c.Title.Contains(searchString));
-                    break;
-
-                case "grade":
-                    query = query.Where(c => c.grade.Name.Contains(searchString));
-                    break;
-
-                case "subject":
-                    query = query.Where(c => c.subject.Name.Contains(searchString));
-                    break;
-
-                default:
-                    
-                    query = query.Where(c =>
-                        c.Title.Contains(searchString) ||
-                        c.grade.Name.Contains(searchString) ||
-                        c.subject.Name.Contains(searchString));
-                    break;
+                query = query.Where(c => c.IsApproved);
             }
-            
+            else if (teacherId != null)
+            {
+                query = query.Where(c => c.TeacherId == teacherId && c.IsApproved);
+            }
+            else if (gradeId != null)
+            {
+                query = query.Where(c => c.GradeId == gradeId && c.IsApproved);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                searchBy = searchBy?.ToLower();
+
+                query = searchBy switch
+                {
+                    "subject" => query.Where(c => c.subject.Name.Contains(searchString)),
+                    "title" => query.Where(c => c.Title.Contains(searchString)),
+                    "grade" => query.Where(c => c.grade.Name.Contains(searchString)),
+                    _ => query.Where(c =>
+                        c.Title.Contains(searchString) ||
+                        c.subject.Name.Contains(searchString) ||
+                        c.grade.Name.Contains(searchString) ||
+                        c.subject.Name.Contains(searchString))
+                };
+            }
+
             return await query.ToListAsync();
         }
         public async Task<Course?> GetByIdWithTeacherAsync(int id)
@@ -80,7 +86,6 @@ namespace Coursna.Infrastrcuter.Repositories
                 .Include(c => c.Teacher)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
-
         public async Task<List<Course>> GetPendingCoursesAsync()
         {
             return await _context.Courses

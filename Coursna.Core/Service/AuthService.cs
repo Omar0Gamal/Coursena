@@ -2,7 +2,9 @@
 using Coursna.Core.Domain.IdentityEntities;
 using Coursna.Core.Dtos;
 using Coursna.Core.Exceptions;
+using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +17,14 @@ namespace Coursna.Core.Service
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        private readonly IJwtService _jwtService;
+        public AuthService(UserManager<ApplicationUser> userManager,SignInManager<ApplicationUser> signInManager,IJwtService jwtService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _jwtService = jwtService;
         }
-        public async Task<AuthResponseDto> RegisterTeacherAsync(RegisterTeacherDto registerTeacherDto)
+        public async Task<ApiResponseDto> RegisterTeacherAsync(RegisterTeacherDto registerTeacherDto)
         {
             var existingUser= await _userManager.FindByEmailAsync(registerTeacherDto.Email);
             if (existingUser != null)
@@ -40,11 +44,11 @@ namespace Coursna.Core.Service
                 throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
             }
             await _userManager.AddToRoleAsync(user, "Teacher");
-            return new AuthResponseDto { IsSuccess = true, Message = "Teacher registered successfully, waiting for approval" };
+            return new ApiResponseDto { IsSuccess = true, Message = "Teacher registered successfully, waiting for approval" };
             
         }
 
-        public async Task<AuthResponseDto> RegisterStudentAsync(RegisterStudentDto registerStudentDto)
+        public async Task<ApiResponseDto> RegisterStudentAsync(RegisterStudentDto registerStudentDto)
         {
             var existingUser = await _userManager.FindByEmailAsync(registerStudentDto.Email);
             if (existingUser != null)
@@ -78,7 +82,7 @@ namespace Coursna.Core.Service
 
             await _userManager.AddToRoleAsync(user, "Student");
 
-            return new AuthResponseDto
+            return new ApiResponseDto
             {
                 IsSuccess = true,
                 Message = "Student registered successfully"
@@ -86,7 +90,7 @@ namespace Coursna.Core.Service
         }
         
 
-        public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
+        public async Task<LoginResponseDto> LoginAsync(LoginDto loginDto)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
@@ -101,23 +105,28 @@ namespace Coursna.Core.Service
             if (!user.IsApproved) {
                 throw new BadRequestException("Account not approved yet");
             }
-            await _signInManager.SignInAsync(user,isPersistent: false);
-            return new AuthResponseDto
+            var token = await _jwtService.CreateJwtToken(user);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return new LoginResponseDto
             {
-                IsSuccess = true,
-                Message = "Login successful"
+                Token = token,
+                Email = user.Email,
+                Role = roles.FirstOrDefault()
             };
+          
         }
 
-        public async Task<AuthResponseDto> LogoutAsync()
+        public async Task<ApiResponseDto> LogoutAsync()
         {
             await _signInManager.SignOutAsync();
 
-            return AuthResponseDto.Success("Loged out \n"); 
+            return ApiResponseDto.Success("Loged out \n"); 
                 
          }
 
-        public async Task<AuthResponseDto> Update(string userId,RegisterTeacherDto dto)
+        public async Task<ApiResponseDto> Update(string userId,RegisterTeacherDto dto)
         {
             var user=await _userManager.FindByIdAsync(userId);
             if(user == null)
@@ -136,7 +145,7 @@ namespace Coursna.Core.Service
 
                 if (!result.Succeeded)
                 {
-                    return AuthResponseDto.Fail(
+                    return ApiResponseDto.Fail(
                         string.Join(",", result.Errors.Select(e => e.Description))
                     );
                 }
@@ -149,7 +158,39 @@ namespace Coursna.Core.Service
                 throw new BadRequestException(string.Join(",", updateResult.Errors.Select(e => e.Description)));
             }
 
-            return AuthResponseDto.Success("User updated successfully");
+            return ApiResponseDto.Success("User updated successfully");
+        }
+        public async Task<MeDto> GetCurrentUserAsync(string userId)
+        {
+            var user = await _userManager.Users
+                .Include(u => u.Teacher)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new NotFoundException("User not found");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var role = roles.FirstOrDefault();
+
+            return new MeDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = role,
+                IsApproved = user.IsApproved,
+
+                TeacherId = user.TeacherId,
+
+                TeacherName = user.Teacher?.FullName,
+
+                InviteCode = role == "Teacher"
+                    ? user.InviteCode
+                    : user.Teacher?.InviteCode
+            };
         }
 
     }

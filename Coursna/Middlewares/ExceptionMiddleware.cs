@@ -44,7 +44,7 @@ namespace Coursna.Middlewares
             var response = new
             {
                 success = false,
-                message = ex.Message,
+                message = statusCode == 500 ? "Something went wrong" : ex.Message,
                 statusCode
             };
 
