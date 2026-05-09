@@ -44,8 +44,8 @@ namespace Coursna.Controllers
             return Ok();
         }
 
-
-            [HttpGet("search")]
+        [Authorize]
+        [HttpGet("search")]
             public async Task<IActionResult> Search(string searchBy, string searchString)
             {
 

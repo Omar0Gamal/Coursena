@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 
 namespace Coursna
 {
@@ -120,25 +121,62 @@ namespace Coursna
                         .AllowCredentials(); 
                 });
             });
-
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }) .AddJwtBearer(options =>
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    ValidAudience = builder.Configuration["JWT:Audience"],
+
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
                     {
-                        options.TokenValidationParameters = new TokenValidationParameters
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+
+                        var result = JsonSerializer.Serialize(new
                         {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
-                            ValidIssuer = builder.Configuration["JWT:Issuer"],
-                            ValidAudience = builder.Configuration["JWT:Audience"],
-                            IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
-                        };
-                    });
+                            success = false,
+                            statusCode = 401,
+                            message = "Unauthorized"
+                        });
+
+                        await context.Response.WriteAsync(result);
+                    },
+
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = 403;
+                        context.Response.ContentType = "application/json";
+
+                        var result = JsonSerializer.Serialize(new
+                        {
+                            success = false,
+                            statusCode = 403,
+                            message = "Forbidden"
+                        });
+
+                        await context.Response.WriteAsync(result);
+                    }
+                };
+            });
 
             builder.Services.AddAuthorization();
             builder.Services.AddHangfire(config => config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Default")));
