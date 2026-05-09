@@ -30,7 +30,6 @@ namespace Coursna.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetCourses() //Registerd k student
-
         {
             if (User.IsInRole("Student"))
             {
