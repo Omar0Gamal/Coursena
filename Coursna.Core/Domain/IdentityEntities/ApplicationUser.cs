@@ -27,9 +27,12 @@ namespace Coursna.Core.Domain.IdentityEntities
         public ICollection<Enrollment> Enrollments { get; set; }
         public ICollection<Message> SentMessages { get; set; }
         public ICollection<Message> ReceivedMessages { get; set; }
+        public ICollection<QuizAttempt> QuizAttempts { get; set; }
 
         // lma el student ysagel y7ot el grade 
         public int? gradeId {  get; set; }
         public Grade grade { get; set; }
+
+
     }
 }

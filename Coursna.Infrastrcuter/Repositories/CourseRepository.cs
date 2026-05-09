@@ -93,7 +93,5 @@ namespace Coursna.Infrastrcuter.Repositories
                 .Where(c => !c.IsApproved)
                 .ToListAsync();
         }
-
-     
     }
 }

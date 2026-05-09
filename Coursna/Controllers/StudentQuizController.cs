@@ -1,0 +1,119 @@
+﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Dtos;
+using Coursna.Core.ServiceContracts;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Coursna.Controllers
+{
+    [ApiController]
+    [Route("api/v1/student")]
+    [Authorize(Roles = "Student")]
+    public class StudentQuizController : ControllerBase
+    {
+        private readonly IQuizService _quizService;
+        private readonly IAttemptService _attemptService;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public StudentQuizController(
+            IQuizService quizService,
+            IAttemptService attemptService,
+            UserManager<ApplicationUser> userManager)
+        {
+            _quizService = quizService;
+            _attemptService = attemptService;
+            _userManager = userManager;
+        }
+
+        #region Quiz Listing
+
+        // GET: /api/v1/student/courses/{courseId}/quizzes
+        [HttpGet("courses/{courseId}/quizzes")]
+        public async Task<IActionResult> GetPublishedQuizzes(int courseId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            var result = await _quizService.GetPublishedQuizzesByCourseIdAsyc(courseId, studentId);
+            return Ok(result);
+        }
+
+        #endregion
+
+        #region Quiz Attempt Management
+
+        // POST: /api/v1/student/quizzes/{quizId}/attempts
+        [HttpPost("quizzes/{quizId}/attempts")]
+        public async Task<IActionResult> StartAttempt(int quizId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+                var attemptId = await _attemptService.StartAttemptAsync(quizId,studentId);
+                // Returns the location of the new resource
+                return Created($"/api/v1/student/attempts/{attemptId}", new { AttemptId = attemptId });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+        // GET: /api/v1/student/attempts/{attemptId}/questions
+        [HttpGet("attempts/{attemptId}/questions")]
+        public async Task<IActionResult> GetAttemptQuestions(int attemptId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+                // This returns the quiz questions and options specifically for this attempt
+                var questions = await _attemptService.GetAttemptQuestionsAsync(attemptId, studentId);
+                return Ok(questions);
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+        }
+        // PATCH: /api/v1/student/attempts/{attemptId}/responses
+        // Used for the "Heartbeat" auto-save feature in React
+        [HttpPatch("attempts/{attemptId}/responses")]
+        public async Task<IActionResult> SaveResponse(int attemptId, [FromBody] SaveResponseRequest request)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+                await _attemptService.SaveResponseAsync(attemptId, request, studentId);
+                return NoContent(); // 204 No Content is standard for background saves
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // POST: /api/v1/student/attempts/{attemptId}/submit
+        [HttpPost("attempts/{attemptId}/submit")]
+        public async Task<IActionResult> SubmitAttempt(int attemptId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+                var result = await _attemptService.SubmitAttemptAsync(attemptId, studentId);
+                return Ok(result); // Returns final score/result
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        }
+        // GET: /api/v1/student/attempts/{attemptId}/result
+        [HttpGet("attempts/{attemptId}/result")]
+        public async Task<IActionResult> GetAttemptResult(int attemptId)
+        {
+            var studentId = _userManager.GetUserId(User);
+            try
+            {
+             
+                var result = await _attemptService.GetAttemptResultAsync(attemptId, studentId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        #endregion
+    }
+}

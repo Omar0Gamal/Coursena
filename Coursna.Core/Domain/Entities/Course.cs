@@ -25,5 +25,7 @@ namespace Coursna.Core.Domain.Entities
         public Subject subject {  get; set; }
         public int GradeId {  get; set; }
         public Grade grade { get; set; }
+        public ICollection<Quiz> quizzes { get; set; }
+
     }
 }

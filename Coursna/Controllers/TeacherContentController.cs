@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/teacher/content")]
+    [Route("api/v1/teacher/content")]
     [Authorize(Roles = "Teacher")]
     public class TeacherContentController : ControllerBase
     {

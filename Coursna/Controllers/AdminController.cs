@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/admin")]
-   [Authorize(Roles = "Admin")]
+    [Route("api/v1/admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
-   
+
             private readonly IAdminService _adminService;
 
             public AdminController(IAdminService adminService)
@@ -28,7 +28,7 @@ namespace Coursna.Controllers
             }
 
           
-            [HttpPost("approve-teacher/{teacherId}")]
+            [HttpPost("teachers/{teacherId}/approve")]
             public async Task<IActionResult> ApproveTeacher(string teacherId)
             {
                 var result = await _adminService.ApproveTeacherAsync(teacherId);
@@ -39,7 +39,7 @@ namespace Coursna.Controllers
             }
 
             
-            [HttpDelete("reject-teacher/{teacherId}")]
+            [HttpPost("teachers/{teacherId}/reject")]
             public async Task<IActionResult> RejectTeacher(string teacherId)
             {
                 var result = await _adminService.RejectTeacherAsync(teacherId);
@@ -47,7 +47,7 @@ namespace Coursna.Controllers
 
                 return Ok(result);
             }
-        [HttpGet("Get-Users")]
+        [HttpGet("users")]
         public async Task<IActionResult> GetUsers()
         {
             var result = await _adminService.GetUsersAsync();
@@ -55,7 +55,7 @@ namespace Coursna.Controllers
         }
 
        
-        [HttpDelete("Delete{userId}")]
+        [HttpDelete("users/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
             var result = await _adminService.DeleteUserAsync(userId);
@@ -65,7 +65,7 @@ namespace Coursna.Controllers
         }
 
        
-        [HttpPost("Add-User")]
+        [HttpPost("users")]
         public async Task<IActionResult> CreateUser(CreateUserDto dto)
         {
             var result = await _adminService.CreateUserAsync(dto);

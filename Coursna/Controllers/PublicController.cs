@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/courses")]
+    [Route("api/v1/courses")]
     public class PublicCourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
@@ -20,7 +20,7 @@ namespace Coursna.Controllers
         }
 
         [HttpGet("{inviteCode}/courses")]
-        public async Task<IActionResult> GetPublicCourses(string inviteCode)  //anonymous
+        public async Task<IActionResult> GetPublicCourses(string inviteCode)
         {
             var result = await _courseService
                 .GetPublicCoursesByInviteCodeAsync(inviteCode);

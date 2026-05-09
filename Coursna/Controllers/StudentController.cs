@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/student")]
+    [Route("api/v1/student")]
     [Authorize(Roles = "Student")]
     public class StudentController : ControllerBase
     {
@@ -23,7 +23,7 @@ namespace Coursna.Controllers
             _enrollmentService = enrollmentService;
                 _userManager = userManager;
         }
-        [HttpPost("enroll-by-code")]
+        [HttpPost("enrollments")]
         public async Task<IActionResult> EnrollByCode( EnrollByCodeDto dto)
         {
             
@@ -55,7 +55,7 @@ namespace Coursna.Controllers
 
             return Ok(result);
         }
-        [HttpPost("check-completion/{courseId}")]
+        [HttpGet("courses/{courseId}/completion-status")]
         public async Task<IActionResult> CheckCompletion(int courseId)
         {
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);

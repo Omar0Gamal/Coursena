@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/admin/courses")]
+    [Route("api/v1/admin/courses")]
     [Authorize(Roles = "Admin")]
     public class AdminCourseController : ControllerBase
     {
@@ -17,7 +17,7 @@ namespace Coursna.Controllers
         }
 
 
-        [HttpGet("GetCourses")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await _courseService.GetAllCoursesAsync();

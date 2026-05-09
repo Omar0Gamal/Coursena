@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Coursna.Controllers
 {
     [ApiController]
-    [Route("api/teacher/courses")]
+    [Route("api/v1/teacher/courses")]
     [Authorize(Roles = "Teacher")]
     public class TeacherCourseController : ControllerBase
     {
@@ -29,8 +29,8 @@ namespace Coursna.Controllers
 
         }
 
- 
-        [HttpPost("Add")]
+
+        [HttpPost]
         public async Task<IActionResult> Create(CreateCourseDto dto)
         {
             var teacherId = _userManager.GetUserId(User);
@@ -40,7 +40,7 @@ namespace Coursna.Controllers
             return Ok(result);
         }
 
-        [HttpGet("Get-Courses")]
+        [HttpGet]
         public async Task<IActionResult> GetMyCourses()
         {
             var teacherId = _userManager.GetUserId(User);
@@ -51,7 +51,7 @@ namespace Coursna.Controllers
         }
 
 
-        [HttpPut("Update{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, CreateCourseDto dto)
         {
             var teacherId = _userManager.GetUserId(User);
@@ -62,7 +62,7 @@ namespace Coursna.Controllers
             return Ok("Updated successfully");
         }
 
-        [HttpDelete("Delete{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var teacherId = _userManager.GetUserId(User);
