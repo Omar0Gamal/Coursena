@@ -19,8 +19,6 @@ namespace Coursna.Controllers
             _userManager = user;
         }
 
-       
-
         [HttpGet]
         public async Task<IActionResult> GetCourses(string? inviteCode)
         {
