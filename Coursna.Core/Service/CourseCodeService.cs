@@ -22,7 +22,7 @@ namespace Coursna.Core.Service
             _codeRepo = codeRepo;
         }
 
-        public async Task<AuthResponseDto> GenerateCodesAsync(int courseId, int count)
+        public async Task<ApiResponseDto> GenerateCodesAsync(int courseId, int count)
         {
             if (count <= 0)
                throw new BadRequestException("Count must be greater than zero");
@@ -48,7 +48,7 @@ namespace Coursna.Core.Service
 
             await _codeRepo.AddRangeAsync(codes);
 
-            return AuthResponseDto.Success($"{count} codes generated");
+            return ApiResponseDto.Success($"{count} codes generated");
         }
 
         private string GenerateCode()

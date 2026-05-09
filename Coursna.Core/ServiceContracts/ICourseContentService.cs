@@ -10,7 +10,7 @@ namespace Coursna.Core.ServiceContracts
     public interface ICourseContentService
     {
        
-            Task<AuthResponseDto> AddContentAsync(CreateContentDto dto, string teacherId);
+            Task<ApiResponseDto> AddContentAsync(CreateContentDto dto, string teacherId);
             Task<List<CourseContentResponseDto>> GetCourseContentAsync(int courseId, string studentId);
       
     }

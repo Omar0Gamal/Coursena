@@ -24,7 +24,7 @@ namespace Coursna.Core.Service
             _enrollmentRepo = enrollmentRepo;
         }
 
-        public async Task<AuthResponseDto> AddReviewAsync(string studentId, CreateReviewDto dto)
+        public async Task<ApiResponseDto> AddReviewAsync(string studentId, CreateReviewDto dto)
         {
             
             var enrollment = await _enrollmentRepo
@@ -45,7 +45,7 @@ namespace Coursna.Core.Service
             await _reviewRepo.AddAsync(review);
             await _reviewRepo.SaveChangesAsync();
 
-            return AuthResponseDto.Success("Review added");
+            return ApiResponseDto.Success("Review added");
         }
 
         public async Task<List<ReviewResponseDto>> GetCourseReviewsAsync(int courseId)

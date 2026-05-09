@@ -1,5 +1,6 @@
 ﻿using Coursna.Core.Contracts;
 using Coursna.Core.Dtos;
+using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +13,11 @@ namespace Coursna.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly ILookUpService _lookupService;
+        public AuthController(IAuthService authService,ILookUpService lookUpService)
         {
             _authService = authService;
+            _lookupService = lookUpService;
         }
         [HttpPost("register-teacher")]
         public async Task<IActionResult> ResgisterTeacher(RegisterTeacherDto dto)
@@ -53,6 +56,23 @@ namespace Coursna.Controllers
             var result = await _authService.Update(userId, dto);
 
 
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var result = await _authService.GetCurrentUserAsync(userId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("grades")]
+        public async Task<IActionResult> GetGrades()
+        {
+            var result = await _lookupService.GetGradesAsync();
             return Ok(result);
         }
     }

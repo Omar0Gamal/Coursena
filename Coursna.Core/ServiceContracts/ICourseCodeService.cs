@@ -9,7 +9,7 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface ICourseCodeService
     {
-        Task<AuthResponseDto> GenerateCodesAsync(int courseId, int count);
+        Task<ApiResponseDto> GenerateCodesAsync(int courseId, int count);
         Task<List<CourseCodeResponseDto>> GetCodesAsync(string teacherId, int courseId);
     }
 }
