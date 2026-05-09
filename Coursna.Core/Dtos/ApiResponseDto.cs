@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Coursna.Core.Dtos
 {
-    public class AuthResponseDto
+    public class ApiResponseDto
     {
         public bool IsSuccess { get; set; }
         public string Message { get; set; }
 
-        public static AuthResponseDto Success(string msg)
+        public static ApiResponseDto Success(string msg)
             => new() { IsSuccess = true, Message = msg };
 
-        public static AuthResponseDto Fail(string msg)
+        public static ApiResponseDto Fail(string msg)
             => new() { IsSuccess = false, Message = msg };
     }
 

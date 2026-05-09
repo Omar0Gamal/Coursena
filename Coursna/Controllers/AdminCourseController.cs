@@ -30,14 +30,6 @@ namespace Coursna.Controllers
         {
             var success = await _courseService.ApproveCourseAsync(id);
 
-            if (!success)
-            {
-                return Problem(
-                    title: "Approval Failed",
-                    detail: "Course not found",
-                    statusCode: StatusCodes.Status404NotFound
-                );
-            }
 
             return Ok("Course approved successfully");
         }
@@ -48,14 +40,6 @@ namespace Coursna.Controllers
         {
             var success = await _courseService.RejectCourseAsync(id);
 
-            if (!success)
-            {
-                return Problem(
-                    title: "Rejection Failed",
-                    detail: "Course not found",
-                    statusCode: StatusCodes.Status404NotFound
-                );
-            }
 
             return Ok("Course rejected successfully");
         }

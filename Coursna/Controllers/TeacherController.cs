@@ -26,18 +26,10 @@ namespace Coursna.Controllers
         {
             var result = await _codeService.GenerateCodesAsync(dto.CourseId, dto.Count);
 
-            if (!result.IsSuccess)
-            {
-                return Problem(
-                    title: "Generate Codes Failed",
-                    detail: result.Message,
-                    statusCode: 400
-                );
-            }
 
             return Ok(result);
         }
-        [HttpGet("See-generated-codes/{courseId}")]
+        [HttpGet("courses/{courseId}/enroll-codes")]
         public async Task<IActionResult> GetCodes(int courseId)
         {
            

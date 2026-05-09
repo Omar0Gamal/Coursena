@@ -30,8 +30,6 @@ namespace Coursna.Controllers
 
             var result = await _reviewService.AddReviewAsync(studentId, dto);
 
-            if (!result.IsSuccess)
-                return BadRequest(result);
 
             return Ok(result);
         }

@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,11 +28,11 @@ namespace Coursna.Core.Service
                 .ToList();
         }
 
-        public async Task<AuthResponseDto> SendMessageAsync(string senderId, SendMessageDto dto)
+        public async Task<ApiResponseDto> SendMessageAsync(string senderId, SendMessageDto dto)
         {
             if (string.IsNullOrEmpty(dto.Content))
             {
-                return AuthResponseDto.Fail("Content is required");
+                throw new BadRequestException("Message content cannot be empty");
             }
             var message = new Message
             {
@@ -41,7 +42,7 @@ namespace Coursna.Core.Service
                 SentAt = DateTime.UtcNow
             };
             await _messageRepo.AddAsync(message);
-            return AuthResponseDto.Success("Message sent");
+            return ApiResponseDto.Success("Message sent");
         }
     }
 }

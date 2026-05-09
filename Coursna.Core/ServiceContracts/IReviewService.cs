@@ -9,7 +9,7 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface IReviewService
     {
-        Task<AuthResponseDto> AddReviewAsync(string studentId, CreateReviewDto dto);
+        Task<ApiResponseDto> AddReviewAsync(string studentId, CreateReviewDto dto);
         Task<List<ReviewResponseDto>> GetCourseReviewsAsync(int courseId);
     }
 }

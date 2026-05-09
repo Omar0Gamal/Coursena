@@ -9,7 +9,7 @@ namespace Coursna.Core.ServiceContracts
 {
     public interface IMessageService
     {
-        Task<AuthResponseDto> SendMessageAsync(string senderId, SendMessageDto dto);
+        Task<ApiResponseDto> SendMessageAsync(string senderId, SendMessageDto dto);
         Task<List<MessageResponseDto>> GetConversationAsync(string currentUserId, string otherUserId);
     }
 }

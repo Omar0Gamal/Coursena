@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,33 +27,32 @@ namespace Coursna.Core.Service
             _codeRepo = codeRepo;
         }
 
-        public async Task<AuthResponseDto> EnrollByCodeAsync(string studentId, string code)
+        public async Task<ApiResponseDto> EnrollByCodeAsync(string studentId, string code)
         {
             if (string.IsNullOrWhiteSpace(code))
-                return AuthResponseDto.Fail("Code is required");
+                throw new NotFoundException("Code is required");
 
             var courseCode = await _codeRepo.GetByCodeAsync(code);
 
             if (courseCode == null)
-                return AuthResponseDto.Fail("Invalid code");
+                throw new NotFoundException("Invalid code");
 
             if (courseCode.IsUsed)
-                return AuthResponseDto.Fail("Code already used");
+                throw new BadRequestException("Code already used");
 
             var course = await _courseRepo.GetByIdAsync(courseCode.CourseId);
 
             if (course == null)
-                return AuthResponseDto.Fail("Course not found");
+                throw new NotFoundException("Course not found");
 
-           
             if (!course.IsApproved)
-                return AuthResponseDto.Fail("Course not available");
+                throw new NotFoundException("Course not available");
 
             var existing = await _enrollmentRepo
                 .GetActiveEnrollmentAsync(studentId, course.Id);
 
             if (existing != null)
-                return AuthResponseDto.Fail("Already enrolled");
+                throw new NotFoundException("Already enrolled");
 
             var enrollment = new Enrollment
             {
@@ -72,7 +72,7 @@ namespace Coursna.Core.Service
             await _codeRepo.UpdateAsync(courseCode);
             await _codeRepo.SaveChangesAsync();
 
-            return AuthResponseDto.Success("Enrolled successfully");
+            return ApiResponseDto.Success("Enrolled successfully");
         }
 
         public async Task<List<CourseResponseDto>> GetMyCoursesAsync(string studentId)
@@ -83,12 +83,12 @@ namespace Coursna.Core.Service
                 .Select(c => c.ToResponse())
                 .ToList();
         }
-        public async Task<AuthResponseDto> CheckCompletionAsync(string studentId, int courseId)
+        public async Task<ApiResponseDto> CheckCompletionAsync(string studentId, int courseId)
         {
             var enrollment = await _enrollmentRepo.GetEnrollmentAsync(studentId, courseId);
 
             if (enrollment == null)
-                return AuthResponseDto.Fail("Enrollment not found");
+                throw new NotFoundException("Enrollment not found");
 
             
             if (DateTime.UtcNow >= enrollment.EndDate)
@@ -98,10 +98,10 @@ namespace Coursna.Core.Service
                 await _enrollmentRepo.UpdateAsync(enrollment);
                 await _enrollmentRepo.SaveChangesAsync();
 
-                return AuthResponseDto.Success("Course completed");
+                return ApiResponseDto.Success("Course completed");
             }
 
-            return AuthResponseDto.Fail("Course still active");
+            return ApiResponseDto.Fail("Course still active");
         }
     }
 }

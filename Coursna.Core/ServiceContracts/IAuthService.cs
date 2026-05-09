@@ -9,10 +9,11 @@ namespace Coursna.Core.Contracts
 {
     public interface IAuthService
     {
-        Task<AuthResponseDto> RegisterTeacherAsync(RegisterTeacherDto registerTeacherDto);
-        Task<AuthResponseDto> RegisterStudentAsync(RegisterStudentDto registerStudentDto);
-        Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
-        Task<AuthResponseDto> LogoutAsync();
-        Task<AuthResponseDto> Update(string userId, RegisterTeacherDto dto);
+        Task<ApiResponseDto> RegisterTeacherAsync(RegisterTeacherDto registerTeacherDto);
+        Task<ApiResponseDto> RegisterStudentAsync(RegisterStudentDto registerStudentDto);
+        Task<LoginResponseDto> LoginAsync(LoginDto loginDto);
+        Task<ApiResponseDto> LogoutAsync();
+        Task<ApiResponseDto> Update(string userId, RegisterTeacherDto dto);
+        Task<MeDto> GetCurrentUserAsync(string userId);
     }
 }

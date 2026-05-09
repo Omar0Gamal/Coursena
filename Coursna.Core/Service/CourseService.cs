@@ -5,6 +5,7 @@ using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,8 @@ namespace Coursna.Core.Service
             course.IsApproved = false;
             await _Repository.AddAsync(course);
             await _Repository.SaveChangesAsync();
-            return course.ToResponse();
+            var createdCourse = await _courseRepository.GetByIdWithTeacherAsync(course.Id);
+            return createdCourse.ToResponse();
 
         }
 
@@ -41,7 +43,7 @@ namespace Coursna.Core.Service
             var teacher = await _userManager.FindByIdAsync(teacherId);
 
             if (teacher == null)
-                return null;
+                throw new NotFoundException("Teacher not found");
 
             return teacher.InviteCode;
         }
@@ -51,7 +53,7 @@ namespace Coursna.Core.Service
            var course=await _Repository.GetByIdAsync(id);
             if (course == null)
             {
-                throw new Exception("No course with this id");
+                throw new NotFoundException("No course with this id");
             }
             return course.ToResponse();
         }
@@ -68,9 +70,9 @@ namespace Coursna.Core.Service
         {
             var course= await _Repository.GetByIdAsync(id);
             if(course == null)
-                return false;
-            if(course.TeacherId!=teacherId)
-                return false;
+               throw new NotFoundException("No course with this id");
+            if (course.TeacherId!=teacherId)
+               throw new UnauthorizedAccessException("You are not the owner of this course");
             course.Title = dto.Title;
             course.Description = dto.Description;
              course.Price= dto.Price;
@@ -88,10 +90,10 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                return false;
+               throw new NotFoundException("No course with this id");
 
             if (course.TeacherId != teacherId)
-                return false;
+               throw new UnauthorizedAccessException("You are not the owner of this course");
 
             _Repository.DeleteAsync(course);
             await _Repository.SaveChangesAsync();
@@ -103,16 +105,16 @@ namespace Coursna.Core.Service
         {
           
             if (string.IsNullOrWhiteSpace(code))
-                return new List<CourseResponseDto>();
+                throw new BadRequestException("Invite code is required");
 
-           
+
             var teacher = await _userManager.Users
                 .FirstOrDefaultAsync(t => t.InviteCode == code);
 
             if (teacher == null)
-                return new List<CourseResponseDto>();
+                throw new NotFoundException("Teacher not found for this invite code");
 
-           
+
             var courses = await _courseRepository
                 .GetPublicCoursesByTeacherAsync(teacher.Id);
 
@@ -123,11 +125,9 @@ namespace Coursna.Core.Service
         }
         public async Task<List<CourseResponseDto>> GetAllCoursesAsync()
         {
-            var courses = await _Repository.GetAllAsync();
+            var courses = await _courseRepository.GetPendingCoursesAsync();
 
-            return courses
-                .Select(c => c.ToResponse())
-                .ToList();
+            return courses.Select(c => c.ToResponse()).ToList();
         }
 
         public async Task<bool> ApproveCourseAsync(int id)
@@ -135,7 +135,7 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                return false;
+                throw new  NotFoundException("no course with this id");
 
             course.IsApproved = true;
 
@@ -150,7 +150,7 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                return false;
+                throw new NotFoundException("no course with this id");
 
             course.IsApproved = false;
 
@@ -159,42 +159,98 @@ namespace Coursna.Core.Service
 
             return true;
         }
-        public async Task<List<CourseResponseDto>> SearchCoursesAsync(
-            string inviteCode,
-            string searchBy,
-            string searchString)
+      
+        public async Task<List<CourseResponseDto>> GetCoursesForStudentAsync(string studentId)
+{
+    var student = await _userManager.Users
+        .FirstOrDefaultAsync(u => u.Id == studentId);
+
+    if (student == null)
+        throw new NotFoundException("Student not found");
+
+    if (student.gradeId == null)
+        throw new BadRequestException("Student has no grade assigned");
+
+    var courses = await _courseRepository
+        .GetByGradeIdAsync(student.gradeId.Value);
+
+    return courses
+        .Select(c => c.ToResponse())
+        .ToList();
+}
+
+
+        ////////////////////// search//////////////////////
+        public async Task<List<CourseResponseDto>> SearchPublicByTeacherAsync(
+          string inviteCode,
+          string searchBy,
+          string searchString)
         {
-         
+            if (string.IsNullOrWhiteSpace(inviteCode))
+                throw new BadRequestException("Invite code is required");
+            
+
             var teacher = await _userManager.Users
                 .FirstOrDefaultAsync(t => t.InviteCode == inviteCode);
 
             if (teacher == null)
-                return new List<CourseResponseDto>();
+                throw new NotFoundException("Invalid invite code");
 
-            
-            var courses = await _courseRepository
-                .SearchCoursesAsync(teacher.Id, searchBy, searchString);
+            var courses = await _courseRepository.SearchAsync(
+                teacherId: teacher.Id,
+                gradeId: null,
+                isPublic: false, //ll teacher el mo3yan
+                searchBy: searchBy,
+                searchString: searchString
+            );
 
-            return courses.Select(c => new CourseResponseDto
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Price = c.Price
-            }).ToList();
+            return courses.Select(c => c.ToResponse()).ToList();
         }
-        public async Task<List<CourseResponseDto>> GetCoursesForStudentAsync(string studentId,string inviteCode)
+        public async Task<List<CourseResponseDto>> SearchTeacherCoursesAsync(
+    string teacherId,
+    string searchBy,
+    string searchString)
         {
-            var student = await _userManager.FindByIdAsync(studentId);
+            var courses = await _courseRepository.SearchAsync(
+                teacherId: teacherId,
+                gradeId: null,
+                isPublic: false,
+                searchBy: searchBy,
+                searchString: searchString
+            );
 
-            if (student?.gradeId == null)
-                return new List<CourseResponseDto>();
-            var teacher = await _userManager.Users.FirstOrDefaultAsync(u => u.InviteCode == inviteCode);
-            if (teacher == null)
-                return new List<CourseResponseDto>();
-            var courses = await _courseRepository
-                .GetByGradeIdAsync(student.gradeId.Value,teacher.Id.ToString());
+            return courses.Select(c => c.ToResponse()).ToList();
+        }
+
+
+        public async Task<List<CourseResponseDto>> SearchStudentCoursesAsync(
+    string studentId,
+    string searchBy,
+    string searchString)
+        {
+            var student = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.Id == studentId);
+
+            if (student == null)
+                throw new NotFoundException("Student not found");
+
+            if (student.gradeId == null)
+                throw new BadRequestException("Student has no grade");
+
+            var courses = await _courseRepository.SearchAsync(
+                teacherId: null,
+                gradeId: student.gradeId,
+                isPublic: false,
+                searchBy: searchBy,
+                searchString: searchString
+            );
 
             return courses.Select(c => c.ToResponse()).ToList();
         }
     }
+
+
+
+   
+    
 }

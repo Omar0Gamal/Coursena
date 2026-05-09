@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Coursna.Core.Exceptions;
 
 namespace Coursna.Core.Service
 {
@@ -19,27 +20,27 @@ namespace Coursna.Core.Service
         {
             _userManager = userManager;
         }
-        public async Task<AuthResponseDto> ApproveTeacherAsync(string teacherId)
+        public async Task<ApiResponseDto> ApproveTeacherAsync(string teacherId)
         {
             var teacher= await _userManager.FindByIdAsync(teacherId);
             if (teacher == null)
             {
-                return AuthResponseDto.Fail("Teacher not found");
+                throw new NotFoundException("Teacher not found");
 
             }
             if (teacher.IsApproved)
             {
-                return AuthResponseDto.Fail("Teacher already approved");
+                throw new BadRequestException("Teacher already approved");
             }
             teacher.IsApproved = true;
             teacher.InviteCode = GenerateInviteCode();
             var result=await _userManager.UpdateAsync(teacher);
             if (!result.Succeeded)
-                return AuthResponseDto.Fail(
+                throw new BadRequestException(
                     string.Join(", ", result.Errors.Select(e => e.Description))
                 );
 
-            return AuthResponseDto.Success(
+            return ApiResponseDto.Success(
                 $"Teacher approved successfully. InviteCode: {teacher.InviteCode}"
             );
 
@@ -51,21 +52,21 @@ namespace Coursna.Core.Service
             return teachers.Select(t=>t.ToTeacherResponse()).ToList();
         }
 
-        public async Task<AuthResponseDto> RejectTeacherAsync(string teacherId)
+        public async Task<ApiResponseDto> RejectTeacherAsync(string teacherId)
         {
             var teacher = await _userManager.FindByIdAsync(teacherId);
 
             if (teacher == null)
-                return AuthResponseDto.Fail("Teacher not found");
+                throw new NotFoundException("Teacher not found");
 
             var result = await _userManager.DeleteAsync(teacher);
 
             if (!result.Succeeded)
-                return AuthResponseDto.Fail(
+                throw new NotFoundException(
                     string.Join(", ", result.Errors.Select(e => e.Description))
                 );
 
-            return AuthResponseDto.Success("Teacher rejected successfully");
+            return ApiResponseDto.Success("Teacher rejected successfully");
         }
         private string GenerateInviteCode()
         {
@@ -95,24 +96,24 @@ namespace Coursna.Core.Service
         }
 
        
-        public async Task<AuthResponseDto> DeleteUserAsync(string userId)
+        public async Task<ApiResponseDto> DeleteUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
-                return AuthResponseDto.Fail("User not found");
+                return ApiResponseDto.Fail("User not found");
 
             var result = await _userManager.DeleteAsync(user);
 
             if (!result.Succeeded)
-                return AuthResponseDto.Fail(
+                return ApiResponseDto.Fail(
                     string.Join(",", result.Errors.Select(e => e.Description))
                 );
 
-            return AuthResponseDto.Success("User deleted successfully");
+            return ApiResponseDto.Success("User deleted successfully");
         }
 
-        public async Task<AuthResponseDto> CreateUserAsync(CreateUserDto dto)
+        public async Task<ApiResponseDto> CreateUserAsync(CreateUserDto dto)
         {
             var user = new ApplicationUser
             {
@@ -124,14 +125,14 @@ namespace Coursna.Core.Service
             var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (!result.Succeeded)
-                return AuthResponseDto.Fail(
+                return ApiResponseDto.Fail(
                     string.Join(",", result.Errors.Select(e => e.Description))
                 );
 
           
             await _userManager.AddToRoleAsync(user, dto.Role);
 
-            return AuthResponseDto.Success("User created successfully");
+            return ApiResponseDto.Success("User created successfully");
         }
     }
 }

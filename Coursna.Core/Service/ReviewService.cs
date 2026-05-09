@@ -2,6 +2,7 @@
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Coursna.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,14 +24,14 @@ namespace Coursna.Core.Service
             _enrollmentRepo = enrollmentRepo;
         }
 
-        public async Task<AuthResponseDto> AddReviewAsync(string studentId, CreateReviewDto dto)
+        public async Task<ApiResponseDto> AddReviewAsync(string studentId, CreateReviewDto dto)
         {
             
             var enrollment = await _enrollmentRepo
                 .GetEnrollmentAsync(studentId, dto.CourseId);
 
             if (enrollment == null)
-                return AuthResponseDto.Fail("You must enroll first");
+               throw new NotFoundException("Enrollment not found");
 
             var review = new CourseReview
             {
@@ -44,7 +45,7 @@ namespace Coursna.Core.Service
             await _reviewRepo.AddAsync(review);
             await _reviewRepo.SaveChangesAsync();
 
-            return AuthResponseDto.Success("Review added");
+            return ApiResponseDto.Success("Review added");
         }
 
         public async Task<List<ReviewResponseDto>> GetCourseReviewsAsync(int courseId)
