@@ -1,6 +1,4 @@
-
 using Coursna.Core.Contracts;
-using Coursna.Core.Domain.IdentityEntities;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Service;
 using Coursna.Core.ServiceContracts;
@@ -11,7 +9,6 @@ using Coursna.Infrastrcuter.Identity;
 using Coursna.Infrastrcuter.Repositories;
 using Coursna.Middlewares;
 using Hangfire;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Principal;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -70,15 +67,8 @@ namespace Coursna
 
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-            }) .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
-
-       
+            builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IIdentitySeeder, IdentitySeeder>();
           
             builder.Services.AddScoped<IAdminService, AdminService>();
@@ -98,7 +88,6 @@ namespace Coursna
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
             builder.Services.AddScoped<ILookUpService, LookUpService>();
             builder.Services.AddScoped<IReviewService, ReviewService>();
-            builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IAttemptRepository, AttemptRepository>();
             builder.Services.AddScoped<IAttemptService, AttemptService>();
@@ -219,3 +208,4 @@ namespace Coursna
         }
     }
 }
+

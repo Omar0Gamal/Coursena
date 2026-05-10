@@ -1,5 +1,5 @@
-﻿using Coursna.Core.Domain.Enums;
-using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
+using Coursna.Core.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,3 +31,5 @@ namespace Coursna.Core.Domain.Entities
 
     }
 }
+
+

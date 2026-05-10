@@ -1,32 +1,30 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Coursna.Core.Exceptions;
+using Coursna.Core.Contracts;
 
 namespace Coursna.Core.Service
 {
     public class AdminService : IAdminService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IAuthRepository _authRepo;
 
-        public AdminService(UserManager<ApplicationUser> userManager)
+        public AdminService(IAuthRepository authRepo)
         {
-            _userManager = userManager;
+            _authRepo = authRepo;
         }
+
         public async Task<ApiResponseDto> ApproveTeacherAsync(string teacherId)
         {
-            var teacher= await _userManager.FindByIdAsync(teacherId);
+            var teacher = await _authRepo.GetUserByIdAsync(teacherId);
             if (teacher == null)
             {
                 throw new NotFoundException("Teacher not found");
-
             }
             if (teacher.IsApproved)
             {
@@ -34,40 +32,39 @@ namespace Coursna.Core.Service
             }
             teacher.IsApproved = true;
             teacher.InviteCode = GenerateInviteCode();
-            var result=await _userManager.UpdateAsync(teacher);
-            if (!result.Succeeded)
-                throw new BadRequestException(
-                    string.Join(", ", result.Errors.Select(e => e.Description))
-                );
+            
+            await _authRepo.UpdateUserAsync(teacher);
 
             return ApiResponseDto.Success(
                 $"Teacher approved successfully. InviteCode: {teacher.InviteCode}"
             );
-
         }
 
         public async Task<List<TeacherResponseDto>> GetPendingTeachersAsync()
         {
-            var teachers = await _userManager.Users.Where(t => t.IsApproved == false).ToListAsync();
-            return teachers.Select(t=>t.ToTeacherResponse()).ToList();
+            var teachers = await _authRepo.GetPendingTeachersAsync();
+            
+            // ToTeacherResponse() mapping extension should be called
+            return teachers.Select(t => new TeacherResponseDto {
+                Id = t.Id,
+                Email = t.Email,
+                FullName = t.FullName,
+                IsApproved = t.IsApproved
+            }).ToList();
         }
 
         public async Task<ApiResponseDto> RejectTeacherAsync(string teacherId)
         {
-            var teacher = await _userManager.FindByIdAsync(teacherId);
+            var teacher = await _authRepo.GetUserByIdAsync(teacherId);
 
             if (teacher == null)
                 throw new NotFoundException("Teacher not found");
 
-            var result = await _userManager.DeleteAsync(teacher);
-
-            if (!result.Succeeded)
-                throw new NotFoundException(
-                    string.Join(", ", result.Errors.Select(e => e.Description))
-                );
+            await _authRepo.DeleteUserAsync(teacher);
 
             return ApiResponseDto.Success("Teacher rejected successfully");
         }
+
         private string GenerateInviteCode()
         {
             return Guid.NewGuid().ToString("N")[..6].ToUpper();
@@ -75,40 +72,32 @@ namespace Coursna.Core.Service
 
         public async Task<List<UserResponseDto>> GetUsersAsync()
         {
-            var users = _userManager.Users.ToList();
+            var users = await _authRepo.GetAllUsersAsync();
 
             var result = new List<UserResponseDto>();
 
             foreach (var user in users)
             {
-                var roles = await _userManager.GetRolesAsync(user);
-
                 result.Add(new UserResponseDto
                 {
                     Id = user.Id,
                     Email = user.Email,
                     FullName = user.FullName,
-                    Role = roles.FirstOrDefault()
+                    Role = user.Role 
                 });
             }
 
             return result;
         }
 
-       
         public async Task<ApiResponseDto> DeleteUserAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _authRepo.GetUserByIdAsync(userId);
 
             if (user == null)
                 return ApiResponseDto.Fail("User not found");
 
-            var result = await _userManager.DeleteAsync(user);
-
-            if (!result.Succeeded)
-                return ApiResponseDto.Fail(
-                    string.Join(",", result.Errors.Select(e => e.Description))
-                );
+            await _authRepo.DeleteUserAsync(user);
 
             return ApiResponseDto.Success("User deleted successfully");
         }
@@ -119,20 +108,16 @@ namespace Coursna.Core.Service
             {
                 UserName = dto.Email,
                 Email = dto.Email,
-                FullName = dto.FullName
+                FullName = dto.FullName,
+                Role = dto.Role,
+                IsApproved = true
             };
 
-            var result = await _userManager.CreateAsync(user, dto.Password);
-
-            if (!result.Succeeded)
-                return ApiResponseDto.Fail(
-                    string.Join(",", result.Errors.Select(e => e.Description))
-                );
-
-          
-            await _userManager.AddToRoleAsync(user, dto.Role);
+            await _authRepo.Register(user, dto.Password);
 
             return ApiResponseDto.Success("User created successfully");
         }
     }
 }
+
+

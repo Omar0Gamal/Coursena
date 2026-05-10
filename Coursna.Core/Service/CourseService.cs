@@ -1,16 +1,9 @@
-﻿using Coursna.Core.Domain.Entities;
-using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Coursna.Core.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Coursna.Core.Contracts;
 
 namespace Coursna.Core.Service
 {
@@ -18,12 +11,12 @@ namespace Coursna.Core.Service
     {
         private readonly IRepository<Course> _Repository;
         private readonly IcourseRepository _courseRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
-        public CourseService(IRepository<Course> repository,IcourseRepository courserepo,UserManager<ApplicationUser> userManager)
+        private readonly IAuthRepository _authRepository;
+        public CourseService(IRepository<Course> repository, IcourseRepository courserepo, IAuthRepository authRepository)
         {
             _Repository = repository;
             _courseRepository = courserepo;
-            _userManager = userManager;
+            _authRepository = authRepository;
 
         }
         public async Task<CourseResponseDto> CreateCourseAsync(CreateCourseDto dto, string teacherId)
@@ -40,7 +33,7 @@ namespace Coursna.Core.Service
 
         public async Task<string> GetInviteCodeAsync(string teacherId)
         {
-            var teacher = await _userManager.FindByIdAsync(teacherId);
+            var teacher = await _authRepository.GetUserByIdAsync(teacherId);
 
             if (teacher == null)
                 throw new NotFoundException("Teacher not found");
@@ -50,7 +43,7 @@ namespace Coursna.Core.Service
 
         public async Task<CourseResponseDto?> GetByIdAsync(int id)
         {
-           var course=await _Repository.GetByIdAsync(id);
+            var course = await _Repository.GetByIdAsync(id);
             if (course == null)
             {
                 throw new NotFoundException("No course with this id");
@@ -58,24 +51,24 @@ namespace Coursna.Core.Service
             return course.ToResponse();
         }
 
-       
+
 
         public async Task<List<CourseResponseDto>> GetTeacherCoursesAsync(string teacherId)
         {
-           var courses= await _courseRepository.GetTeacherCousres(teacherId);
-            return courses.Select(c=>c.ToResponse()).ToList();
+            var courses = await _courseRepository.GetTeacherCousres(teacherId);
+            return courses.Select(c => c.ToResponse()).ToList();
         }
 
         public async Task<bool> UpdateCourseAsync(int id, CreateCourseDto dto, string teacherId)
         {
-            var course= await _Repository.GetByIdAsync(id);
-            if(course == null)
-               throw new NotFoundException("No course with this id");
-            if (course.TeacherId!=teacherId)
-               throw new UnauthorizedAccessException("You are not the owner of this course");
+            var course = await _Repository.GetByIdAsync(id);
+            if (course == null)
+                throw new NotFoundException("No course with this id");
+            if (course.TeacherId != teacherId)
+                throw new UnauthorizedAccessException("You are not the owner of this course");
             course.Title = dto.Title;
             course.Description = dto.Description;
-             course.Price= dto.Price;
+            course.Price = dto.Price;
             course.DurationInDays = dto.DurationInDays;
             course.VideoUrl = dto.VideoUrl;
             course.content = dto.content;
@@ -90,10 +83,10 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-               throw new NotFoundException("No course with this id");
+                throw new NotFoundException("No course with this id");
 
             if (course.TeacherId != teacherId)
-               throw new UnauthorizedAccessException("You are not the owner of this course");
+                throw new UnauthorizedAccessException("You are not the owner of this course");
 
             _Repository.DeleteAsync(course);
             await _Repository.SaveChangesAsync();
@@ -103,13 +96,13 @@ namespace Coursna.Core.Service
 
         public async Task<List<CourseResponseDto>> GetPublicCoursesByInviteCodeAsync(string code)
         {
-          
+
             if (string.IsNullOrWhiteSpace(code))
                 throw new BadRequestException("Invite code is required");
 
 
-            var teacher = await _userManager.Users
-                .FirstOrDefaultAsync(t => t.InviteCode == code);
+            var users = await _authRepository.GetAllUsersAsync();
+            var teacher = users.FirstOrDefault(t => t.InviteCode == code);
 
             if (teacher == null)
                 throw new NotFoundException("Teacher not found for this invite code");
@@ -118,7 +111,7 @@ namespace Coursna.Core.Service
             var courses = await _courseRepository
                 .GetPublicCoursesByTeacherAsync(teacher.Id);
 
-            
+
             return courses
                 .Select(c => c.ToResponse())
                 .ToList();
@@ -135,7 +128,7 @@ namespace Coursna.Core.Service
             var course = await _Repository.GetByIdAsync(id);
 
             if (course == null)
-                throw new  NotFoundException("no course with this id");
+                throw new NotFoundException("no course with this id");
 
             course.IsApproved = true;
 
@@ -159,25 +152,24 @@ namespace Coursna.Core.Service
 
             return true;
         }
-      
+
         public async Task<List<CourseResponseDto>> GetCoursesForStudentAsync(string studentId)
-{
-    var student = await _userManager.Users
-        .FirstOrDefaultAsync(u => u.Id == studentId);
+        {
+            var student = await _authRepository.GetUserByIdAsync(studentId);
 
-    if (student == null)
-        throw new NotFoundException("Student not found");
+            if (student == null)
+                throw new NotFoundException("Student not found");
 
-    if (student.gradeId == null)
-        throw new BadRequestException("Student has no grade assigned");
+            if (student.gradeId == null)
+                throw new BadRequestException("Student has no grade assigned");
 
-    var courses = await _courseRepository
-        .GetByGradeIdAsync(student.gradeId.Value);
+            var courses = await _courseRepository
+                .GetByGradeIdAsync(student.gradeId.Value);
 
-    return courses
-        .Select(c => c.ToResponse())
-        .ToList();
-}
+            return courses
+                .Select(c => c.ToResponse())
+                .ToList();
+        }
 
 
         ////////////////////// search//////////////////////
@@ -188,10 +180,10 @@ namespace Coursna.Core.Service
         {
             if (string.IsNullOrWhiteSpace(inviteCode))
                 throw new BadRequestException("Invite code is required");
-            
 
-            var teacher = await _userManager.Users
-                .FirstOrDefaultAsync(t => t.InviteCode == inviteCode);
+
+            var users = await _authRepository.GetAllUsersAsync();
+            var teacher = users.FirstOrDefault(t => t.InviteCode == inviteCode);
 
             if (teacher == null)
                 throw new NotFoundException("Invalid invite code");
@@ -228,8 +220,7 @@ namespace Coursna.Core.Service
     string searchBy,
     string searchString)
         {
-            var student = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.Id == studentId);
+            var student = await _authRepository.GetUserByIdAsync(studentId);
 
             if (student == null)
                 throw new NotFoundException("Student not found");
@@ -248,9 +239,4 @@ namespace Coursna.Core.Service
             return courses.Select(c => c.ToResponse()).ToList();
         }
     }
-
-
-
-   
-    
 }

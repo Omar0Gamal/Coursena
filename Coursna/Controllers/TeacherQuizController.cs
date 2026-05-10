@@ -1,9 +1,9 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Coursna.Controllers
 {
@@ -14,16 +14,13 @@ namespace Coursna.Controllers
     {
         private readonly IQuizService _quizService;
         private readonly IQuestionService _questionService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public TeacherQuizController(
             IQuizService quizService,
-            IQuestionService questionService,
-            UserManager<ApplicationUser> userManager)
+            IQuestionService questionService)
         {
             _quizService = quizService;
             _questionService = questionService;
-            _userManager = userManager;
         }
 
         #region Quiz Management
@@ -32,7 +29,7 @@ namespace Coursna.Controllers
         [HttpGet("courses/{courseId}/quizzes")]
         public async Task<IActionResult> GetQuizzes(int courseId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _quizService.GetQuizzesByCourseIdAsync(courseId, teacherId);
             return Ok(result);
         }
@@ -41,7 +38,7 @@ namespace Coursna.Controllers
         [HttpPost("courses/{courseId}/quizzes")]
         public async Task<IActionResult> CreateQuiz(int courseId, [FromBody] CreateQuizDto dto)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _quizService.CreateQuizAsync(dto, teacherId);
             return Created($"/api/v1/teacher/quizzes/{result.Id}", result);
         }
@@ -50,7 +47,7 @@ namespace Coursna.Controllers
         [HttpGet("quizzes/{quizId}")]
         public async Task<IActionResult> GetQuiz(int quizId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 var quiz = await _quizService.GetTeacherQuizWithQuestionsByIdAsync(quizId, teacherId);
@@ -63,7 +60,7 @@ namespace Coursna.Controllers
         [HttpPut("quizzes/{quizId}")]
         public async Task<IActionResult> UpdateQuiz(int quizId, [FromBody] CreateQuizDto dto)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _quizService.UpdateQuizAsync(quizId, dto, teacherId);
@@ -77,7 +74,7 @@ namespace Coursna.Controllers
         [HttpDelete("quizzes/{quizId}")]
         public async Task<IActionResult> DeleteQuiz(int quizId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _quizService.DeleteQuizAsync(quizId, teacherId);
@@ -90,7 +87,7 @@ namespace Coursna.Controllers
         [HttpPatch("quizzes/{quizId}/publish")]
         public async Task<IActionResult> PublishQuiz(int quizId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _quizService.PublishQuizAsync(quizId, teacherId);
@@ -104,7 +101,7 @@ namespace Coursna.Controllers
         [HttpGet("quizzes/{quizId}/answers")]
         public async Task<IActionResult> GetQuizAnswers(int quizId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 var quiz = await _quizService.GetTeacherQuizWithAnswersByIdAsync(quizId, teacherId);
@@ -121,7 +118,7 @@ namespace Coursna.Controllers
         [HttpPost("quizzes/{quizId}/questions")]
         public async Task<IActionResult> AddQuestion(int quizId, [FromBody] CreateQuestionDto request)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 var questionId = await _quizService.AddQuestionAsync(quizId, request, teacherId);
@@ -135,7 +132,7 @@ namespace Coursna.Controllers
         [HttpPut("questions/{questionId}")]
         public async Task<IActionResult> UpdateQuestion(int questionId, [FromBody] CreateQuestionDto request)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _questionService.UpdateQuestionAsync(questionId, request, teacherId);
@@ -150,7 +147,7 @@ namespace Coursna.Controllers
         [HttpDelete("questions/{questionId}")]
         public async Task<IActionResult> DeleteQuestion(int questionId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _questionService.DeleteQuestionAsync(questionId, teacherId);
@@ -168,7 +165,7 @@ namespace Coursna.Controllers
         [HttpPost("questions/{questionId}/options")]
         public async Task<IActionResult> AddOption(int questionId, [FromBody] CreateOptionDto request)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 var optionId = await _questionService.AddOptionAsync(questionId, request, teacherId);
@@ -182,7 +179,7 @@ namespace Coursna.Controllers
         [HttpPut("options/{optionId}")]
         public async Task<IActionResult> UpdateOption(int optionId, [FromBody] CreateOptionDto request)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _questionService.UpdateOptionAsync(optionId, request, teacherId);
@@ -196,7 +193,7 @@ namespace Coursna.Controllers
         [HttpDelete("options/{optionId}")]
         public async Task<IActionResult> DeleteOption(int optionId)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _questionService.DeleteOptionAsync(optionId, teacherId);
@@ -209,3 +206,4 @@ namespace Coursna.Controllers
         #endregion
     }
 }
+

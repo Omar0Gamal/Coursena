@@ -1,4 +1,5 @@
-﻿using Coursna.Core.Dtos;
+using Coursna.Core.Domain.Entities;
+using Coursna.Core.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,9 @@ namespace Coursna.Core.Contracts
 {
     public interface IAuthService
     {
-        Task<ApiResponseDto> RegisterTeacherAsync(RegisterTeacherDto registerTeacherDto);
-        Task<ApiResponseDto> RegisterStudentAsync(RegisterStudentDto registerStudentDto);
-        Task<LoginResponseDto> LoginAsync(LoginDto loginDto);
-        Task<ApiResponseDto> LogoutAsync();
-        Task<ApiResponseDto> Update(string userId, RegisterTeacherDto dto);
-        Task<MeDto> GetCurrentUserAsync(string userId);
+        Task<ApplicationUser> Register(UserRegisterDto request);
+        Task<AuthResponseDto> Login(UserLoginDto request);
     }
 }
+
+

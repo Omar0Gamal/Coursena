@@ -1,9 +1,9 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Coursna.Controllers
 {
@@ -14,16 +14,13 @@ namespace Coursna.Controllers
     {
         private readonly IQuizService _quizService;
         private readonly IAttemptService _attemptService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public StudentQuizController(
             IQuizService quizService,
-            IAttemptService attemptService,
-            UserManager<ApplicationUser> userManager)
+            IAttemptService attemptService)
         {
             _quizService = quizService;
             _attemptService = attemptService;
-            _userManager = userManager;
         }
 
         #region Quiz Listing
@@ -32,7 +29,7 @@ namespace Coursna.Controllers
         [HttpGet("courses/{courseId}/quizzes")]
         public async Task<IActionResult> GetPublishedQuizzes(int courseId)
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _quizService.GetPublishedQuizzesByCourseIdAsyc(courseId, studentId);
             return Ok(result);
         }
@@ -45,7 +42,7 @@ namespace Coursna.Controllers
         [HttpPost("quizzes/{quizId}/attempts")]
         public async Task<IActionResult> StartAttempt(int quizId)
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 var attemptId = await _attemptService.StartAttemptAsync(quizId,studentId);
@@ -60,7 +57,7 @@ namespace Coursna.Controllers
         [HttpGet("attempts/{attemptId}/questions")]
         public async Task<IActionResult> GetAttemptQuestions(int attemptId)
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 // This returns the quiz questions and options specifically for this attempt
@@ -75,7 +72,7 @@ namespace Coursna.Controllers
         [HttpPatch("attempts/{attemptId}/responses")]
         public async Task<IActionResult> SaveResponse(int attemptId, [FromBody] SaveResponseRequest request)
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 await _attemptService.SaveResponseAsync(attemptId, request, studentId);
@@ -90,7 +87,7 @@ namespace Coursna.Controllers
         [HttpPost("attempts/{attemptId}/submit")]
         public async Task<IActionResult> SubmitAttempt(int attemptId)
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
                 var result = await _attemptService.SubmitAttemptAsync(attemptId, studentId);
@@ -103,7 +100,7 @@ namespace Coursna.Controllers
         [HttpGet("attempts/{attemptId}/result")]
         public async Task<IActionResult> GetAttemptResult(int attemptId)
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
              
@@ -117,3 +114,4 @@ namespace Coursna.Controllers
         #endregion
     }
 }
+

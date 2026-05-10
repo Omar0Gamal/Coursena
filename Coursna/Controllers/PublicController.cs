@@ -1,7 +1,6 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -12,11 +11,9 @@ namespace Coursna.Controllers
     public class PublicCourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
-        private readonly UserManager<ApplicationUser> _userManager;
-        public PublicCourseController(ICourseService courseService, UserManager<ApplicationUser> user)
+        public PublicCourseController(ICourseService courseService)
         {
             _courseService = courseService;
-            _userManager = user;
         }
 
         [HttpGet("{inviteCode}/courses")]
@@ -33,7 +30,7 @@ namespace Coursna.Controllers
         {
             if (User.IsInRole("Student"))
             {
-                var studentId = _userManager.GetUserId(User);
+                var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 var result = await _courseService
                     .GetCoursesForStudentAsync(studentId);
@@ -52,7 +49,7 @@ namespace Coursna.Controllers
                 // Student
                 if (User.IsInRole("Student"))
                 {
-                    var studentId = _userManager.GetUserId(User);
+                    var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                     var result = await _courseService.SearchStudentCoursesAsync(studentId, searchBy, searchString);
                     return Ok(result);
@@ -61,7 +58,7 @@ namespace Coursna.Controllers
                 // Teacher (optional)
                 if (User.IsInRole("Teacher"))
                 {
-                    var teacherId = _userManager.GetUserId(User);
+                    var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                     var result = await _courseService.SearchTeacherCoursesAsync(teacherId, searchBy, searchString);
                     return Ok(result);
@@ -84,3 +81,4 @@ namespace Coursna.Controllers
         }
     }
 }
+

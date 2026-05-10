@@ -1,4 +1,4 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,3 +19,5 @@ namespace Coursna.Core.Domain.Entities
 
     }
 }
+
+

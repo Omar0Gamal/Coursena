@@ -1,10 +1,8 @@
-﻿using Coursna.Core.Domain.Entities;
-using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Dtos;
 using Coursna.Core.Exceptions;
 using Coursna.Core.ServiceContracts;
-using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -324,3 +322,4 @@ public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
         }
     }
 }
+

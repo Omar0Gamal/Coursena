@@ -1,10 +1,10 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
 using Coursna.Core.Service;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Coursna.Controllers
 {
@@ -14,16 +14,14 @@ namespace Coursna.Controllers
     public class TeacherCourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITeacherDashboardService _teacherDashboardService;
         private readonly ILookUpService _lookupService;
 
         public TeacherCourseController(
             ICourseService courseService,
-            UserManager<ApplicationUser> userManager,ITeacherDashboardService teacherDashboardService,ILookUpService lookUpService)
+            ITeacherDashboardService teacherDashboardService,ILookUpService lookUpService)
         {
             _courseService = courseService;
-            _userManager = userManager;
             _teacherDashboardService = teacherDashboardService;
             _lookupService=lookUpService;
 
@@ -33,7 +31,7 @@ namespace Coursna.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateCourseDto dto)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var result = await _courseService.CreateCourseAsync(dto, teacherId);
 
@@ -43,7 +41,7 @@ namespace Coursna.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMyCourses()
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var result = await _courseService.GetTeacherCoursesAsync(teacherId);
 
@@ -54,7 +52,7 @@ namespace Coursna.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, CreateCourseDto dto)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var success = await _courseService.UpdateCourseAsync(id, dto, teacherId);
 
@@ -65,7 +63,7 @@ namespace Coursna.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var success = await _courseService.DeleteCourseAsync(id, teacherId);
 
@@ -75,7 +73,7 @@ namespace Coursna.Controllers
         public async Task<IActionResult> GetInviteCode()
         {
             
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var code = await _courseService.GetInviteCodeAsync(teacherId);
 
@@ -85,7 +83,7 @@ namespace Coursna.Controllers
         [HttpGet("dashboard")]
         public async Task<IActionResult> GetDashboard()
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 
             var result = await _teacherDashboardService.GetDashboardAsync(teacherId);
@@ -109,3 +107,4 @@ namespace Coursna.Controllers
         }
     }
 }
+

@@ -1,6 +1,4 @@
-﻿using Coursna.Core.Domain.Entities;
-using Coursna.Core.Domain.IdentityEntities;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Coursna.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,9 +8,10 @@ using System.Threading.Tasks;
 
 namespace Coursna.Infrastrcuter.DataContext
 {
-    public class AppDbContext:IdentityDbContext<ApplicationUser>
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<CourseContent> CourseContents { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
@@ -29,6 +28,9 @@ namespace Coursna.Infrastrcuter.DataContext
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Explicitly map ApplicationUser to Users table
+            builder.Entity<ApplicationUser>().ToTable("Users");
 
             // el student leh teacher wa7d bs w el teacher leh kza student
             builder.Entity<ApplicationUser>()
@@ -74,30 +76,38 @@ namespace Coursna.Infrastrcuter.DataContext
             builder.Entity<Question>()
                 .HasOne(q => q.Quiz)
                 .WithMany(u => u.Questions)
-                .HasForeignKey(q => q.QuizId);
+                .HasForeignKey(q => q.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
             //one to mane rel between question and options 
             builder.Entity<Option>()
                .HasOne(o => o.Question)
                .WithMany(q => q.Options)
                .HasForeignKey(o => o.QuestionId);
-            //one to mane rel between attempt and responses
+            
+            // Fix multiple cascade paths for StudentResponse
             builder.Entity<StudentResponse>()
                .HasOne(r => r.QuizAttempt)
                .WithMany(a => a.Responses)
-               .HasForeignKey(r => r.QuizAttemptId);
+               .HasForeignKey(r => r.QuizAttemptId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<StudentResponse>()
+               .HasOne(r => r.Question)
+               .WithMany()
+               .HasForeignKey(r => r.QuestionId)
+               .OnDelete(DeleteBehavior.Restrict); // Changed from default Cascade to Restrict
 
             
             builder.Entity<QuizAttempt>()
               .HasOne(r => r.Student)
               .WithMany(a => a.QuizAttempts)
-              .HasForeignKey(r => r.StudentId);
+              .HasForeignKey(r => r.StudentId)
+              .OnDelete(DeleteBehavior.Restrict); // Changed to Restrict to avoid path from User -> Attempt -> Response vs User -> Enrollment -> ...
 
             builder.Entity<Quiz>()
                 .Property(q => q.IsPublished)
                 .HasDefaultValue(false);
-
-
-
         }
     }
 }
+

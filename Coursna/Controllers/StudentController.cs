@@ -1,9 +1,8 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -15,13 +14,11 @@ namespace Coursna.Controllers
     public class StudentController : ControllerBase
     {
         private readonly IEnrollmentService _enrollmentService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public StudentController(IEnrollmentService enrollmentService, UserManager<ApplicationUser> userManager)
+        public StudentController(IEnrollmentService enrollmentService)
         
         {
             _enrollmentService = enrollmentService;
-                _userManager = userManager;
         }
         [HttpPost("enrollments")]
         public async Task<IActionResult> EnrollByCode( EnrollByCodeDto dto)
@@ -49,7 +46,7 @@ namespace Coursna.Controllers
         [HttpGet("my-courses")]
         public async Task<IActionResult> GetMyCourses()
         {
-            var studentId = _userManager.GetUserId(User);
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var result = await _enrollmentService.GetMyCoursesAsync(studentId);
 
@@ -66,3 +63,5 @@ namespace Coursna.Controllers
         }
     }
 }
+
+

@@ -1,5 +1,7 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
-using Microsoft.AspNetCore.Identity;
+using Coursna.Core.Domain.Entities;
+using Coursna.Core.Contracts;
+using Coursna.Infrastrcuter.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -12,14 +14,14 @@ namespace Coursna.Infrastrcuter.Identity
 {
     public class IdentitySeeder : IIdentitySeeder
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly AppDbContext _context;
+        private readonly IAuthRepository _authRepo;
         private readonly IConfiguration _configuration;
 
-        public IdentitySeeder(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public IdentitySeeder(AppDbContext context, IAuthRepository authRepo, IConfiguration configuration)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
+            _context = context;
+            _authRepo = authRepo;
             _configuration = configuration;
         }
 
@@ -32,7 +34,7 @@ namespace Coursna.Infrastrcuter.Identity
             if (!new EmailAddressAttribute().IsValid(email))
                 throw new Exception("Invalid email format");
 
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             if (user == null)
             {
@@ -41,43 +43,21 @@ namespace Coursna.Infrastrcuter.Identity
                     Email = email,
                     UserName = email,
                     FullName = fullName,
+                    Role = "Admin",
                     IsApproved = true
                 };
 
-                var result = await _userManager.CreateAsync(user, password);
-
-                if (!result.Succeeded)
-                {
-                    throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
-                }
-            }
-
-            
-            if (!await _userManager.IsInRoleAsync(user, "Admin"))
-            {
-                var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
-
-                if (!roleResult.Succeeded)
-                {
-                    throw new Exception(string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                }
+                await _authRepo.Register(user, password);
             }
         }
 
         public async Task SeedRolesAsync()
         {
-            string[] roles = { "Admin", "Teacher", "Student" };
-            foreach (var role in roles) {
-                if(string.IsNullOrEmpty(role)) throw new Exception("Role can't be empty");
-                if (!await _roleManager.RoleExistsAsync(role))
-                {
-                    var result=await _roleManager.CreateAsync(new IdentityRole(role));
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception($"Failed to create role : {role}");
-                    }
-                }
-            }
+            // IdentityRoles are removed as we dropped Identity.
+            // If you have a UserType table in the database, this is where you'd seed them.
+            // For now, replacing this with a no-op or seed custom entities.
         }
     }
 }
+
+

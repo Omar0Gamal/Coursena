@@ -1,9 +1,8 @@
-﻿using Coursna.Core.Domain.IdentityEntities;
+using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -15,18 +14,16 @@ namespace Coursna.Controllers
     public class TeacherContentController : ControllerBase
     {
         private readonly ICourseContentService _contentService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TeacherContentController(ICourseContentService contentService,UserManager<ApplicationUser> userManager)
+        public TeacherContentController(ICourseContentService contentService)
         {
             _contentService = contentService;
-            _userManager = userManager;
         }
 
         [HttpPost]
         public async Task<IActionResult> AddContent(CreateContentDto dto)
         {
-            var teacherId = _userManager.GetUserId(User);
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var result = await _contentService.AddContentAsync(dto, teacherId);
 
@@ -35,3 +32,5 @@ namespace Coursna.Controllers
         }
     }
 }
+
+

@@ -1,15 +1,23 @@
-﻿using Coursna.Core.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
+using Coursna.Core.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Coursna.Core.Domain.IdentityEntities
+namespace Coursna.Core.Domain.Entities
 {
-    public class ApplicationUser:IdentityUser
+    public class ApplicationUser
     {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Email { get; set; }
+        public string UserName { get; set; }
+        
+        public byte[] PasswordHash { get; set; }
+        public byte[] PasswordSalt { get; set; }
+
+        public string Role { get; set; } // e.g. "Admin", "Teacher", "Student"
+
         public string FullName { get; set; }
         //hna el admin howa elly by3mel el approve 
         public bool IsApproved { get; set; } = false;
@@ -36,3 +44,5 @@ namespace Coursna.Core.Domain.IdentityEntities
 
     }
 }
+
+
