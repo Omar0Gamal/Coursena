@@ -1,4 +1,5 @@
 ﻿using Coursna.Core.Dtos;
+using Coursna.Core.Contracts;
 using Coursna.Core.Service;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
@@ -14,10 +15,20 @@ namespace Coursna.Controllers
     public class TeacherController : ControllerBase
     {
         private readonly ICourseCodeService _codeService;
+        private readonly IAuthService _authService;
 
-        public TeacherController(ICourseCodeService codeService)
+        public TeacherController(ICourseCodeService codeService, IAuthService authService)
         {
             _codeService = codeService;
+            _authService = authService;
+        }
+
+        [HttpGet("my-students")]
+        public async Task<IActionResult> GetMyStudents()
+        {
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _authService.GetMyStudentsAsync(teacherId);
+            return Ok(result);
         }
 
         [HttpPost("generate-codes")]

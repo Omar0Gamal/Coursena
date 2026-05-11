@@ -1,15 +1,12 @@
 ﻿using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Coursna.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         private readonly IMessageService _messageService;

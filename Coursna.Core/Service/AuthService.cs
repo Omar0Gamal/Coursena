@@ -40,8 +40,22 @@ namespace Coursna.Core.Service
                 UserName = request.Email,
                 FullName = request.Name,
                 Role = request.Role ?? "Student", // Default to student
-                IsApproved = request.Role == "Teacher" ? false : true // Teachers need approval
+                IsApproved = request.Role == "Teacher" ? false : true, // Teachers need approval
+                gradeId = request.GradeId
             };
+
+            if (userToCreate.Role == "Student" && !string.IsNullOrEmpty(request.InviteCode))
+            {
+                var teacher = await _repo.GetByInviteCodeAsync(request.InviteCode);
+                if (teacher != null)
+                {
+                    userToCreate.TeacherId = teacher.Id;
+                }
+                else
+                {
+                    throw new Exception("Invalid invite code");
+                }
+            }
 
             return await _repo.Register(userToCreate, request.Password);
         }
@@ -86,6 +100,32 @@ namespace Coursna.Core.Service
                 Name = user.FullName ?? user.UserName,
                 Role = user.Role ?? "User"
             };
+        }
+
+        public async Task<UserResponseDto> GetMyTeacherAsync(string studentId)
+        {
+            var teacher = await _repo.GetTeacherForStudentAsync(studentId);
+            if (teacher == null) return null;
+
+            return new UserResponseDto
+            {
+                Id = teacher.Id,
+                Email = teacher.Email,
+                FullName = teacher.FullName,
+                Role = teacher.Role
+            };
+        }
+
+        public async Task<List<UserResponseDto>> GetMyStudentsAsync(string teacherId)
+        {
+            var students = await _repo.GetStudentsForTeacherAsync(teacherId);
+            return students.Select(s => new UserResponseDto
+            {
+                Id = s.Id,
+                Email = s.Email,
+                FullName = s.FullName,
+                Role = s.Role
+            }).ToList();
         }
     }
 }

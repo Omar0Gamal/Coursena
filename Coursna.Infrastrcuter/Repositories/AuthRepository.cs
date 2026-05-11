@@ -57,6 +57,11 @@ namespace Coursna.Infrastrcuter.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
+        public async Task<ApplicationUser> GetByInviteCodeAsync(string inviteCode)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.InviteCode == inviteCode);
+        }
+
         public async Task<List<ApplicationUser>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();
@@ -77,6 +82,21 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<ApplicationUser> GetTeacherForStudentAsync(string studentId)
+        {
+            var student = await _context.Users
+                .Include(u => u.Teacher)
+                .FirstOrDefaultAsync(u => u.Id == studentId);
+            return student?.Teacher;
+        }
+
+        public async Task<List<ApplicationUser>> GetStudentsForTeacherAsync(string teacherId)
+        {
+            return await _context.Users
+                .Where(u => u.TeacherId == teacherId)
+                .ToListAsync();
         }
     }
 }

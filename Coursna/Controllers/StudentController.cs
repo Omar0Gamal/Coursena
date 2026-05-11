@@ -1,4 +1,5 @@
 using Coursna.Core.Domain.Entities;
+using Coursna.Core.Contracts;
 using Coursna.Core.Dtos;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
@@ -14,12 +15,23 @@ namespace Coursna.Controllers
     public class StudentController : ControllerBase
     {
         private readonly IEnrollmentService _enrollmentService;
+        private readonly IAuthService _authService;
 
-        public StudentController(IEnrollmentService enrollmentService)
+        public StudentController(IEnrollmentService enrollmentService, IAuthService authService)
         
         {
             _enrollmentService = enrollmentService;
+            _authService = authService;
         }
+
+        [HttpGet("my-teacher")]
+        public async Task<IActionResult> GetMyTeacher()
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _authService.GetMyTeacherAsync(studentId);
+            return Ok(result);
+        }
+
         [HttpPost("enrollments")]
         public async Task<IActionResult> EnrollByCode( EnrollByCodeDto dto)
         {
@@ -34,7 +46,6 @@ namespace Coursna.Controllers
            
             var result = await _enrollmentService.EnrollByCodeAsync(
                 studentId,
-                
                 dto.Code
             );
 

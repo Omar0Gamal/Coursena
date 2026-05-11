@@ -47,8 +47,8 @@ namespace Coursna.Core.Service
                 MaxAttempts = dto.MaxAttempts,
                 TimeLimitInMinutes = dto.TimeLimitInMinutes
             };
-            _Repository.AddAsync(quiz);
-            _Repository.SaveChangesAsync();
+            await _Repository.AddAsync(quiz);
+            await _Repository.SaveChangesAsync();
             QuizResponseDto response = new QuizResponseDto
             {
                 Title = quiz.Title,

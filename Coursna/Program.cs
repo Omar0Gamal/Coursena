@@ -3,18 +3,20 @@ using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Service;
 using Coursna.Core.ServiceContracts;
 using Coursna.Filters;
+using Coursna.Hubs;
 using Coursna.Infrastrcuter.BackgroundJobs;
 using Coursna.Infrastrcuter.DataContext;
 using Coursna.Infrastrcuter.Identity;
 using Coursna.Infrastrcuter.Repositories;
 using Coursna.Middlewares;
 using Hangfire;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Principal;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Security.Principal;
+using System.Text;
 using System.Text.Json;
 
 namespace Coursna
@@ -104,7 +106,7 @@ namespace Coursna
                 options.AddPolicy("ReactPolicy", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:3000") 
+                        .WithOrigins("http://localhost:5173") 
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials(); 
@@ -133,6 +135,17 @@ namespace Coursna
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/chathub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnChallenge = async context =>
                     {
                         context.HandleResponse();
@@ -197,6 +210,7 @@ namespace Coursna
 
 
             app.MapControllers();
+            app.MapHub<ChatHub>("/chathub");
             app.UseHangfireDashboard("/hangfire");
             app.UseHangfireDashboard("/hangfire", new DashboardOptions
             {

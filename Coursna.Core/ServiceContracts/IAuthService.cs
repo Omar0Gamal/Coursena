@@ -12,6 +12,8 @@ namespace Coursna.Core.Contracts
     {
         Task<ApplicationUser> Register(UserRegisterDto request);
         Task<AuthResponseDto> Login(UserLoginDto request);
+        Task<UserResponseDto> GetMyTeacherAsync(string studentId);
+        Task<List<UserResponseDto>> GetMyStudentsAsync(string teacherId);
     }
 }
 

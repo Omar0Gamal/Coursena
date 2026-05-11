@@ -42,6 +42,7 @@ namespace Coursna.Core.Service
                 SentAt = DateTime.UtcNow
             };
             await _messageRepo.AddAsync(message);
+            await _messageRepo.SaveChangesAsync();
             return ApiResponseDto.Success("Message sent");
         }
     }

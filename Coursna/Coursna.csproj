@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Coursna.Core\Coursna.Core.csproj" />
+    <ProjectReference Include="..\Coursna.Hubs\Coursna.Hubs.csproj" />
     <ProjectReference Include="..\Coursna.Infrastrcuter\Coursna.Infrastrcuter.csproj" />
   </ItemGroup>
 

@@ -74,7 +74,7 @@ namespace Coursna.Core.Service
             course.content = dto.content;
             course.SubjectID = dto.SubjectId;
             course.GradeId = dto.GradeId;
-            _Repository.UpdateAsync(course);
+            await _Repository.UpdateAsync(course);
             await _Repository.SaveChangesAsync();
             return true;
         }
@@ -101,8 +101,7 @@ namespace Coursna.Core.Service
                 throw new BadRequestException("Invite code is required");
 
 
-            var users = await _authRepository.GetAllUsersAsync();
-            var teacher = users.FirstOrDefault(t => t.InviteCode == code);
+            var teacher = await _authRepository.GetByInviteCodeAsync(code);
 
             if (teacher == null)
                 throw new NotFoundException("Teacher not found for this invite code");
@@ -132,7 +131,7 @@ namespace Coursna.Core.Service
 
             course.IsApproved = true;
 
-            _Repository.UpdateAsync(course);
+            await _Repository.UpdateAsync(course);
             await _Repository.SaveChangesAsync();
 
             return true;
@@ -147,7 +146,7 @@ namespace Coursna.Core.Service
 
             course.IsApproved = false;
 
-            _Repository.UpdateAsync(course);
+            await _Repository.UpdateAsync(course);
             await _Repository.SaveChangesAsync();
 
             return true;
@@ -182,8 +181,7 @@ namespace Coursna.Core.Service
                 throw new BadRequestException("Invite code is required");
 
 
-            var users = await _authRepository.GetAllUsersAsync();
-            var teacher = users.FirstOrDefault(t => t.InviteCode == inviteCode);
+            var teacher = await _authRepository.GetByInviteCodeAsync(inviteCode);
 
             if (teacher == null)
                 throw new NotFoundException("Invalid invite code");

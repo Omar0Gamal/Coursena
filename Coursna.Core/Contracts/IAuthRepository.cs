@@ -11,10 +11,13 @@ namespace Coursna.Core.Contracts
         Task<bool> UserExists(string email);
         
         Task<ApplicationUser> GetUserByIdAsync(string id);
+        Task<ApplicationUser> GetByInviteCodeAsync(string inviteCode);
         Task<List<ApplicationUser>> GetAllUsersAsync();
         Task<List<ApplicationUser>> GetPendingTeachersAsync();
         Task UpdateUserAsync(ApplicationUser user);
         Task DeleteUserAsync(ApplicationUser user);
+        Task<ApplicationUser> GetTeacherForStudentAsync(string studentId);
+        Task<List<ApplicationUser>> GetStudentsForTeacherAsync(string teacherId);
     }
 }
 
