@@ -39,7 +39,7 @@ namespace Coursna.Core.Service
             await _courseContentRepo.AddAsync(content);
             await _courseContentRepo.SaveChangesAsync();
 
-            return ApiResponseDto.Success("Content added successfully");
+            return ApiResponseDto.Success("Content added successfully gedan");
         }
 
         public async Task<List<CourseContentResponseDto>> GetCourseContentAsync(int courseId, string studentId)
