@@ -224,6 +224,7 @@ namespace Coursna.Core.Service
 
             return new AttemptResultResponse
             {
+                AttemptId = attempt.Id,
                 TotalScore = attempt.CurrentScore,
                 CompletedAt = attempt.CompletedAt.Value
             };

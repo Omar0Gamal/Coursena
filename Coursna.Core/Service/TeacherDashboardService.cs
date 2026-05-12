@@ -21,18 +21,22 @@ namespace Coursna.Core.Service
         public async Task<TeacherDashboardDto> GetDashboardAsync(string teacherId)
         {
             var totalCourses = await _repo.GetTotalCoursesAsync(teacherId);
+            var activeCourses = await _repo.GetActiveCoursesAsync(teacherId);
             var totalCodes = await _repo.GetTotalCodesAsync(teacherId);
             var usedCodes = await _repo.GetUsedCodesAsync(teacherId);
             var totalStudents = await _repo.GetTotalStudentsAsync(teacherId);
             var activeStudents = await _repo.GetActiveStudentsAsync(teacherId);
+            var monthlyRevenue = await _repo.GetMonthlyRevenueAsync(teacherId);
 
             
             return TeacherDashboardDto.ToResponse(
                 totalCourses,
+                activeCourses,
                 totalStudents,
                 totalCodes,
                 usedCodes,
-                activeStudents
+                activeStudents,
+                monthlyRevenue
             );
         }
     }

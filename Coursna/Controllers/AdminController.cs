@@ -73,6 +73,12 @@ namespace Coursna.Controllers
           
             return Ok(result);
         }
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var result = await _adminService.GetStatsAsync();
+            return Ok(result);
+        }
     }
-    }
+}
 

@@ -19,19 +19,29 @@ namespace Coursna.Infrastrcuter.Repositories
 
         public async Task<List<Course>> GetPublicCoursesByTeacherAsync(string teacherId)
         {
-            return await _context.Courses.Include(c=>c.Teacher)
+            return await _context.Courses
+                .Include(c => c.Teacher)
+                .Include(c => c.grade)
+                .Include(c => c.subject)
                 .Where(c => c.IsApproved && c.TeacherId == teacherId)
                 .ToListAsync();
         }
 
         public async Task<List<Course>> GetTeacherCousres(string id)
         {
-           return await _context.Courses.Include(c => c.Teacher).Where(t=>t.TeacherId==id).ToListAsync();
+           return await _context.Courses
+                .Include(c => c.Teacher)
+                .Include(c => c.grade)
+                .Include(c => c.subject)
+                .Where(t => t.TeacherId == id)
+                .ToListAsync();
         }
         public async Task<List<Course>> GetByGradeIdAsync(int gradeId)
         {
             return await _context.Courses
                 .Include(c => c.Teacher)
+                .Include(c => c.grade)
+                .Include(c => c.subject)
                 .Where(c => c.IsApproved && c.GradeId == gradeId)
                 .ToListAsync();
         }
@@ -73,8 +83,7 @@ namespace Coursna.Infrastrcuter.Repositories
                     _ => query.Where(c =>
                         c.Title.Contains(searchString) ||
                         c.subject.Name.Contains(searchString) ||
-                        c.grade.Name.Contains(searchString) ||
-                        c.subject.Name.Contains(searchString))
+                        c.grade.Name.Contains(searchString))
                 };
             }
 
@@ -84,12 +93,17 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             return await _context.Courses
                 .Include(c => c.Teacher)
+                .Include(c => c.grade)
+                .Include(c => c.subject)
+                .Include(c => c.quizzes)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task<List<Course>> GetPendingCoursesAsync()
         {
             return await _context.Courses
                 .Include(c => c.Teacher)
+                .Include(c => c.grade)
+                .Include(c => c.subject)
                 .Where(c => !c.IsApproved)
                 .ToListAsync();
         }

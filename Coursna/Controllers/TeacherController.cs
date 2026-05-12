@@ -50,6 +50,15 @@ namespace Coursna.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("courses/{courseId}/active-codes")]
+        public async Task<IActionResult> GetActiveCodes(int courseId)
+        {
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _codeService.GetActiveCodesAsync(teacherId, courseId);
+
+            return Ok(result);
+        }
   
     }
 

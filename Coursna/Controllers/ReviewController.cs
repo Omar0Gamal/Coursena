@@ -31,7 +31,7 @@ namespace Coursna.Controllers
             return Ok(result);
         }
 
-        [HttpGet("/api/v1/courses/{courseId}/reviews")]
+        [HttpGet("{courseId}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetReviews(int courseId)
         {

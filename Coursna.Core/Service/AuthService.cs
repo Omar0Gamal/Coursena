@@ -17,7 +17,7 @@ namespace Coursna.Core.Service
     {
         private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
-        
+
         public AuthService(IAuthRepository repo, IConfiguration config)
         {
             _repo = repo;
@@ -63,7 +63,7 @@ namespace Coursna.Core.Service
         public async Task<AuthResponseDto> Login(UserLoginDto request)
         {
             var user = await _repo.Login(request.Email, request.Password);
-            if (user == null) 
+            if (user == null)
                 return new AuthResponseDto { IsSuccess = false, Message = "Invalid email or password", Token = null }; // Unauthorized
 
             var claims = new List<Claim>
@@ -90,7 +90,7 @@ namespace Coursna.Core.Service
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return new AuthResponseDto 
+            return new AuthResponseDto
             {
                 IsSuccess = true,
                 Message = "Login successful",
@@ -112,7 +112,8 @@ namespace Coursna.Core.Service
                 Id = teacher.Id,
                 Email = teacher.Email,
                 FullName = teacher.FullName,
-                Role = teacher.Role
+                Role = teacher.Role,
+                gradeID = -1 // Teachers don't have a gradeId
             };
         }
 
@@ -124,8 +125,23 @@ namespace Coursna.Core.Service
                 Id = s.Id,
                 Email = s.Email,
                 FullName = s.FullName,
-                Role = s.Role
+                Role = s.Role,
+                gradeID = s.gradeId.Value
             }).ToList();
+        }
+
+        public async Task<UserResponseDto> GetMeAsync(string userId)
+        {
+            var user = await _repo.GetUserByIdAsync(userId);
+            if (user == null) return null;
+            return new UserResponseDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = user.Role,
+                gradeID = (user.gradeId) == null ? -1 : user.gradeId.Value
+            };
         }
     }
 }

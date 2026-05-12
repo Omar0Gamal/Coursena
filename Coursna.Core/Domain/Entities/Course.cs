@@ -16,6 +16,8 @@ namespace Coursna.Core.Domain.Entities
         public int DurationInDays { get; set; }
         public string VideoUrl {  get; set; }
         public string content { get; set; }
+        public string DocumentUrl { get; set; }
+        public string AssignmentUrl { get; set; }
         public bool IsApproved { get; set; }
 
         public string TeacherId { get; set; }

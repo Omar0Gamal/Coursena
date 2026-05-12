@@ -32,7 +32,7 @@ namespace Coursna.Core.Service
             }
             teacher.IsApproved = true;
             teacher.InviteCode = GenerateInviteCode();
-            
+
             await _authRepo.UpdateUserAsync(teacher);
 
             return ApiResponseDto.Success(
@@ -43,9 +43,10 @@ namespace Coursna.Core.Service
         public async Task<List<TeacherResponseDto>> GetPendingTeachersAsync()
         {
             var teachers = await _authRepo.GetPendingTeachersAsync();
-            
+
             // ToTeacherResponse() mapping extension should be called
-            return teachers.Select(t => new TeacherResponseDto {
+            return teachers.Select(t => new TeacherResponseDto
+            {
                 Id = t.Id,
                 Email = t.Email,
                 FullName = t.FullName,
@@ -83,7 +84,7 @@ namespace Coursna.Core.Service
                     Id = user.Id,
                     Email = user.Email,
                     FullName = user.FullName,
-                    Role = user.Role 
+                    Role = user.Role
                 });
             }
 
@@ -116,6 +117,19 @@ namespace Coursna.Core.Service
             await _authRepo.Register(user, dto.Password);
 
             return ApiResponseDto.Success("User created successfully");
+        }
+
+        public async Task<StateDto> GetStatsAsync()
+        {
+            var stats = await _authRepo.GetStatsAsync();
+            return new StateDto
+            {
+                TotalUsers = stats.TotalUsers,
+                TotalTeachers = stats.TotalTeachers,
+                TotalCourses = stats.TotalCourses,
+                PendingTeachers = stats.PendingTeachers,
+                PendingCourses = stats.PendingCourses
+            };
         }
     }
 }

@@ -9,9 +9,11 @@ namespace Coursna.Core.Domain.RepositoryInterface
     public interface ITeacherDashboardRepository
     {
         Task<int> GetTotalCoursesAsync(string teacherId);
+        Task<int> GetActiveCoursesAsync(string teacherId);
         Task<int> GetTotalCodesAsync(string teacherId);
         Task<int> GetUsedCodesAsync(string teacherId);
         Task<int> GetTotalStudentsAsync(string teacherId);
         Task<int> GetActiveStudentsAsync(string teacherId);
+        Task<decimal> GetMonthlyRevenueAsync(string teacherId);
     }
 }

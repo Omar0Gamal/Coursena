@@ -13,7 +13,6 @@ namespace Coursna.Infrastrcuter.DataContext
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<Course> Courses { get; set; }
-        public DbSet<CourseContent> CourseContents { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Subject> Subjects { get; set; }

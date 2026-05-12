@@ -18,6 +18,8 @@ namespace Coursna.Core.Contracts
         Task DeleteUserAsync(ApplicationUser user);
         Task<ApplicationUser> GetTeacherForStudentAsync(string studentId);
         Task<List<ApplicationUser>> GetStudentsForTeacherAsync(string teacherId);
+        Task<(int TotalUsers, int TotalTeachers, int TotalCourses, int PendingTeachers, int PendingCourses)> GetStatsAsync();
+        Task<List<ApplicationUser>> GetStudentsEnrolledInCourse(int courseId, string teacherId);
     }
 }
 

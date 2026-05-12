@@ -30,6 +30,8 @@ namespace Coursna.Infrastrcuter.Repositories
             return await _Context.Enrollments
            .Where(e => e.StudentId == studentId)
            .Include(e => e.course).ThenInclude(c => c.Teacher)
+           .Include(e => e.course).ThenInclude(c => c.grade)
+           .Include(e => e.course).ThenInclude(c => c.subject)
            .Select(e => e.course)
            .ToListAsync();
         }

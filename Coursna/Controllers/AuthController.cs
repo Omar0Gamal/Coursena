@@ -1,7 +1,9 @@
 ﻿using Coursna.Core.Contracts;
-using Coursna.Core.ServiceContracts;
 using Coursna.Core.Dtos;
+using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 
 namespace Coursna.Controllers
@@ -42,6 +44,16 @@ namespace Coursna.Controllers
                 return Unauthorized(response);
 
             return Ok(response);
+        }
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> getMe()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+            var result = await _authService.GetMeAsync(userId);
+            return Ok(result);
         }
 
         [HttpGet("grades")]

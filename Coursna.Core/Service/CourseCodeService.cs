@@ -79,5 +79,23 @@ namespace Coursna.Core.Service
                 
             }).ToList();
         }
+
+        public async Task<List<CourseCodeResponseDto>> GetActiveCodesAsync(string teacherId, int courseId)
+        {
+            var course = await _courseRepo.GetByIdAsync(courseId);
+
+            if (course == null || course.TeacherId != teacherId)
+                return new List<CourseCodeResponseDto>();
+
+            var codes = await _codeRepo.GetByCourseIdAsync(courseId);
+            
+            return codes
+                .Where(c => !c.IsUsed)
+                .Select(c => new CourseCodeResponseDto
+                {
+                    Code = c.Code,
+                    IsUsed = c.IsUsed
+                }).ToList();
+        }
     }
 }

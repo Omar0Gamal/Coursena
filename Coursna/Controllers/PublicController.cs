@@ -16,12 +16,19 @@ namespace Coursna.Controllers
             _courseService = courseService;
         }
 
-        [HttpGet("{inviteCode}/courses")]
-        public async Task<IActionResult> GetPublicCourses(string inviteCode)
+        [HttpGet("{teacherId}/courses")]
+        public async Task<IActionResult> GetPublicCourses(string teacherId)
         {
             var result = await _courseService
-                .GetPublicCoursesByInviteCodeAsync(inviteCode);
+                .GetPublicCoursesByteacherIdAsync(teacherId);
 
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/preview")]
+        public async Task<IActionResult> GetCoursePreview(int id)
+        {
+            var result = await _courseService.GetCoursePreviewAsync(id);
             return Ok(result);
         }
 

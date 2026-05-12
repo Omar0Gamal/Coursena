@@ -11,5 +11,6 @@ namespace Coursna.Core.ServiceContracts
     {
         Task<ApiResponseDto> GenerateCodesAsync(int courseId, int count);
         Task<List<CourseCodeResponseDto>> GetCodesAsync(string teacherId, int courseId);
+        Task<List<CourseCodeResponseDto>> GetActiveCodesAsync(string teacherId, int courseId);
     }
 }

@@ -15,5 +15,6 @@ namespace Coursna.Core.ServiceContracts
         Task<List<UserResponseDto>> GetUsersAsync();
         Task<ApiResponseDto> DeleteUserAsync(string userId);
         Task<ApiResponseDto> CreateUserAsync(CreateUserDto dto);
+        Task<StateDto> GetStatsAsync();
     }
 }

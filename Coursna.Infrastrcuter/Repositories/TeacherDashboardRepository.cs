@@ -22,6 +22,13 @@ namespace Coursna.Infrastrcuter.Repositories
            return  await _Context.Enrollments.Where(e=>e.EndDate>DateTime.UtcNow&&e.course.TeacherId==teacherId).Select(e=>e.StudentId).Distinct().CountAsync();
         }
 
+        public async Task<int> GetActiveCoursesAsync(string teacherId)
+        {
+            return await _Context.Courses
+                .Where(c => c.TeacherId == teacherId && c.IsApproved)
+                .CountAsync();
+        }
+
         public async Task<int> GetTotalCodesAsync(string teacherId)
         {
             return await _Context.courseCodes.Where(c=>c.Course.TeacherId==teacherId).CountAsync();
@@ -34,10 +41,8 @@ namespace Coursna.Infrastrcuter.Repositories
 
         public async Task<int> GetTotalStudentsAsync(string teacherId)
         {
-            return await _Context.Enrollments
-              .Where(e => e.course.TeacherId == teacherId)
-              .Select(e => e.StudentId)
-              .Distinct()
+            return await _Context.Users
+              .Where(u => u.TeacherId == teacherId && u.Role == "Student")
               .CountAsync();
         }
 
@@ -46,6 +51,14 @@ namespace Coursna.Infrastrcuter.Repositories
             return await _Context.courseCodes
             .Where(c => c.Course.TeacherId == teacherId && c.IsUsed)
             .CountAsync();
+        }
+
+        public async Task<decimal> GetMonthlyRevenueAsync(string teacherId)
+        {
+            var firstDayOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            return await _Context.Enrollments
+                .Where(e => e.course.TeacherId == teacherId && e.StartDate >= firstDayOfMonth)
+                .SumAsync(e => e.course.Price);
         }
     }
 }

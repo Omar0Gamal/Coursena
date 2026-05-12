@@ -19,7 +19,7 @@ namespace Coursna.Core.ServiceContracts
 
         Task<bool> DeleteCourseAsync(int id, string teacherId);
 
-        Task<List<CourseResponseDto>> GetPublicCoursesByInviteCodeAsync(string code);
+        Task<List<CourseResponseDto>> GetPublicCoursesByteacherIdAsync(string code);
         Task<List<CourseResponseDto>> GetAllCoursesAsync();
 
         Task<bool> ApproveCourseAsync(int id);
@@ -34,6 +34,11 @@ namespace Coursna.Core.ServiceContracts
 
         Task<List<CourseResponseDto>> SearchTeacherCoursesAsync(string teacherId, string searchBy, string searchString);
         Task<List<CourseResponseDto>> GetCoursesForStudentAsync(string studentId);
+        Task<List<UserResponseDto>> GetCourseEnrollmentsAsync(string teacherId, int courseId);
+        Task<CourseDetailsResponseDto> GetCourseDetailsAsync(int courseId, string teacherId);
+        Task<CourseDetailsResponseDto> GetCourseContentAsync(int courseId, string studentId);
+        Task<CoursePreviewDto> GetCoursePreviewAsync(int courseId);
+        Task<ApiResponseDto> UpdateCourseContentAsync(UpdateCourseContentDto dto, string teacherId);
     }
     
 }

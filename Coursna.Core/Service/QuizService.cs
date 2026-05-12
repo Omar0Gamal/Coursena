@@ -51,6 +51,7 @@ namespace Coursna.Core.Service
             await _Repository.SaveChangesAsync();
             QuizResponseDto response = new QuizResponseDto
             {
+                Id = quiz.Id,
                 Title = quiz.Title,
                 CourseId = quiz.CourseId,
                 IsPublished = quiz.IsPublished,
@@ -61,14 +62,7 @@ namespace Coursna.Core.Service
 
         }
 
-        
-
-
-
-
-
-
-
+ 
 public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
         {
             var quiz = await _Repository.GetByIdAsync(quizId);

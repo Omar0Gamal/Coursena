@@ -40,6 +40,7 @@ namespace Coursna.Hubs
         {
             // bngeb el senderId
             var senderId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var senderName = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
 
           
             if (string.IsNullOrEmpty(senderId))
@@ -56,6 +57,7 @@ namespace Coursna.Hubs
             await Clients.Group(receiverId).SendAsync("ReceiveMessage", new
             {
                 SenderId = senderId,
+                SenderName = senderName,
                 Content = content,
                 SentAt = DateTime.UtcNow
             });
@@ -64,6 +66,7 @@ namespace Coursna.Hubs
             await Clients.Group(senderId).SendAsync("ReceiveMessage", new
             {
                 SenderId = senderId,
+                SenderName = senderName,
                 Content = content,
                 SentAt = DateTime.UtcNow
             });

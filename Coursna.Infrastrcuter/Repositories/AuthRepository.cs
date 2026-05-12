@@ -30,7 +30,7 @@ namespace Coursna.Infrastrcuter.Repositories
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
 
-            if (user == null || user.PasswordHash == null || user.PasswordSalt == null) 
+            if (user == null || user.PasswordHash == null || user.PasswordSalt == null)
                 return null;
 
             using var hmac = new HMACSHA512(user.PasswordSalt);
@@ -97,6 +97,24 @@ namespace Coursna.Infrastrcuter.Repositories
             return await _context.Users
                 .Where(u => u.TeacherId == teacherId)
                 .ToListAsync();
+        }
+
+        public async Task<(int TotalUsers, int TotalTeachers, int TotalCourses, int PendingTeachers, int PendingCourses)> GetStatsAsync()
+        {
+            var totalUsers = await _context.Users.CountAsync();
+            var totalTeachers = await _context.Users.CountAsync(u => u.Role == "Teacher");
+            var totalCourses = await _context.Courses.CountAsync();
+            var pendingTeachers = await _context.Users.CountAsync(u => u.Role == "Teacher" && !u.IsApproved);
+            var pendingCourses = await _context.Courses.CountAsync(c => !c.IsApproved);
+            return (totalUsers, totalTeachers, totalCourses, pendingTeachers, pendingCourses);
+        }
+
+        public async Task<List<ApplicationUser>> GetStudentsEnrolledInCourse(int courseId, string teacherId)
+        {
+            return await _context.Enrollments
+                .Where(e => e.CourseId == courseId && e.course.TeacherId == teacherId)
+                .Select(e => e.student)
+     .          ToListAsync();
         }
     }
 }

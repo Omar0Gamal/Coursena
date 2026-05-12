@@ -1,4 +1,5 @@
 using Coursna.Core.Contracts;
+using Coursna.Core.Dtos;
 using Coursna.Core.Domain.RepositoryInterface;
 using Coursna.Core.Service;
 using Coursna.Core.ServiceContracts;
@@ -65,6 +66,14 @@ namespace Coursna
             Array.Empty<string>()
         }
     });
+
+                var xmlFile = $"{typeof(Program).Assembly.GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                options.IncludeXmlComments(xmlPath);
+
+                var coreXmlFile = $"{typeof(CreateCourseDto).Assembly.GetName().Name}.xml";
+                var coreXmlPath = Path.Combine(AppContext.BaseDirectory, coreXmlFile);
+                options.IncludeXmlComments(coreXmlPath);
             });
 
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
@@ -82,8 +91,6 @@ namespace Coursna
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<ICourseCodeService, CourseCodeService>();
             builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
-            builder.Services.AddScoped<ICourseContentRepository, CourseContentRepository>();
-            builder.Services.AddScoped<ICourseContentService, CourseContentService>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
