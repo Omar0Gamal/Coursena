@@ -95,7 +95,7 @@ namespace Coursna.Infrastrcuter.Repositories
                 .Include(c => c.Teacher)
                 .Include(c => c.grade)
                 .Include(c => c.subject)
-                .Include(c => c.quizzes)
+                .Include(c => c.quizzes.Where(q => q.IsPublished))
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task<List<Course>> GetPendingCoursesAsync()

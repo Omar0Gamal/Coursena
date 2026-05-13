@@ -15,8 +15,7 @@ namespace Coursna.Core.ServiceContracts
         Task<AttemptResultResponse> SubmitAttemptAsync(int attemptId, string studentId);
         Task<QuizWithQuestionsDto> GetAttemptQuestionsAsync(int attemptId, string studentId);
         Task<AttemptResultResponse> GetAttemptResultAsync(int attemptId, string studentId);
-
-
-
+        Task<ActiveAttemptDto> GetActiveAttemptAsync(int quizId, string studentId);
+        Task<List<AttemptResultResponse>> GetStudentAttemptsByCourseIdAsync(string studentId, int courseId);
     }
 }

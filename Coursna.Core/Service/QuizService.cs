@@ -18,13 +18,15 @@ namespace Coursna.Core.Service
         private readonly IQuizRepository _quizRepository;
         private readonly IRepository<Course> _courseRepository;
         private readonly IEnrollmentRepository _enrollmentRepo;
+        private readonly IAttemptRepository _attemptRepository;
 
-        public QuizService(IRepository<Quiz> repository, IQuizRepository quizrepo, IRepository<Course> courseRepository, IEnrollmentRepository enrollmentRepo)
+        public QuizService(IRepository<Quiz> repository, IQuizRepository quizrepo, IRepository<Course> courseRepository, IEnrollmentRepository enrollmentRepo, IAttemptRepository attemptRepository)
         {
             _Repository = repository;
             _quizRepository = quizrepo;
             _courseRepository = courseRepository;
             _enrollmentRepo = enrollmentRepo;
+            _attemptRepository = attemptRepository;
         }
 
         public async Task<QuizResponseDto> CreateQuizAsync(CreateQuizDto dto,string teacherId)
@@ -254,7 +256,7 @@ public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
             }).ToList();
         }
 
-        public async Task<QuizWithQuestionsDto> GetTeacherQuizWithQuestionsByIdAsync(int quizId, string teacherId)
+        public async Task<QuizWithQuestionWithAnswersDto> GetTeacherQuizWithQuestionsByIdAsync(int quizId, string teacherId)
         {
             var quiz = await _quizRepository.GetQuizWithQuestionsAsync(quizId, teacherId);
             if (quiz == null)
@@ -262,7 +264,7 @@ public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
                 throw new Exception("quiz not found");
             }
 
-            var response = new QuizWithQuestionsDto()
+            var response = new QuizWithQuestionWithAnswersDto()
             {
                 Id = quiz.Id,
                 Title = quiz.Title,
@@ -270,14 +272,16 @@ public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
                 IsPublished = quiz.IsPublished,
                 MaxAttempts = quiz.MaxAttempts,
                 TimeLimitInMinutes = quiz.TimeLimitInMinutes,
-                Questions = quiz.Questions.Select(q => new QuestionDto
+                Questions = quiz.Questions.Select(q => new QuestionWithAnswerDto
                 {
                     Id = q.Id,
                     Text = q.Title,
-                    Options = q.Options.Select(o => new OptionDto
+                    Point = q.Points,
+                    Options = q.Options.Select(o => new OptionWithCorretDto
                     {
                         Id = o.Id,
-                        Text = o.Text
+                        Text = o.Text,
+                        IsCorrect = o.IsCorrect
                     }).ToList()
                 }).ToList()
             };
@@ -313,6 +317,37 @@ public async Task<QuizResponseDto?> GetQuizByIdAsync(int quizId)
                 }).ToList()
             };
             return response;
+        }
+
+        public async Task<List<QuizResultDto>> GetQuizResultsAsync(int quizId, string teacherId)
+        {
+            var quiz = await _quizRepository.GetQuizForTeacherAsync(quizId, teacherId);
+            if (quiz == null)
+            {
+                throw new KeyNotFoundException("Quiz not found or you don't have access.");
+            }
+
+            var attempts = await _attemptRepository.GetQuizResultsAsync(quizId);
+
+            return attempts.Select(a =>
+            {
+                var totalCount = a.Quiz.Questions.Count;
+                var maxScore = a.Quiz.Questions.Sum(q => q.Points);
+                var scorePercentage = maxScore > 0 ? (a.CurrentScore / maxScore) * 100 : 0;
+                var correctCount = a.Responses.Count(r =>
+                    a.Quiz.Questions.Any(q => q.Id == r.QuestionId &&
+                    q.Options.Any(o => o.Id == r.OptionId && o.IsCorrect)));
+
+                return new QuizResultDto
+                {
+                    StudentName = a.Student?.FullName ?? "Unknown",
+                    Score = scorePercentage,
+                    MaxScore = maxScore,
+                    CorrectCount = correctCount,
+                    TotalCount = totalCount,
+                    CompletedAt = a.CompletedAt
+                };
+            }).ToList();
         }
     }
 }

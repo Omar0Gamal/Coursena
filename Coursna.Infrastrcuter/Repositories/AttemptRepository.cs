@@ -23,6 +23,7 @@ namespace Coursna.Infrastrcuter.Repositories
         public async Task<QuizAttempt> GetActiveAttemptAsync(int quizId, string studentId)
         {
             return await _context.QuizAttempts
+                .Include(a => a.Quiz)
                 .FirstOrDefaultAsync(a =>
                     a.QuizId == quizId &&
                     a.StudentId == studentId &&
@@ -45,6 +46,27 @@ namespace Coursna.Infrastrcuter.Repositories
 
             return await _context.QuizAttempts
                 .CountAsync(a => a.QuizId == quizId && a.StudentId == StudentId);
+        }
+
+        public async Task<List<QuizAttempt>> GetQuizResultsAsync(int quizId)
+        {
+            return await _context.QuizAttempts
+                .Include(a => a.Student)
+                .Include(a => a.Responses)
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Questions)
+                        .ThenInclude(q => q.Options)
+                .Where(a => a.QuizId == quizId && a.Status == Core.Domain.Enums.AttemptStatus.Completed)
+                .ToListAsync();
+        }
+
+        public async Task<List<QuizAttempt>> GetStudentAttemptsByCourseIdAsync(string studentId, int courseId)
+        {
+            return await _context.QuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Questions)
+                .Where(a => a.StudentId == studentId && a.Quiz.CourseId == courseId && a.Status == Core.Domain.Enums.AttemptStatus.Completed)
+                .ToListAsync();
         }
     }
 }

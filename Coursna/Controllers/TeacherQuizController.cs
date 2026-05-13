@@ -110,6 +110,19 @@ namespace Coursna.Controllers
             catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
 
+        // GET: /api/v1/teacher/quizzes/{quizId}/results
+        [HttpGet("quizzes/{quizId}/results")]
+        public async Task<IActionResult> GetQuizResults(int quizId)
+        {
+            var teacherId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                var results = await _quizService.GetQuizResultsAsync(quizId, teacherId);
+                return Ok(results);
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        }
+
         #endregion
 
         #region Question Management

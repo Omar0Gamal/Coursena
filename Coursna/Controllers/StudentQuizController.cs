@@ -1,5 +1,6 @@
 using Coursna.Core.Domain.Entities;
 using Coursna.Core.Dtos;
+using Coursna.Core.Exceptions;
 using Coursna.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +33,28 @@ namespace Coursna.Controllers
             var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _quizService.GetPublishedQuizzesByCourseIdAsyc(courseId, studentId);
             return Ok(result);
+        }
+
+        // GET: /api/v1/student/quizzes/{quizId}/active-attempt
+        [HttpGet("quizzes/{quizId}/active-attempt")]
+        public async Task<IActionResult> GetActiveAttempt(int quizId)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _attemptService.GetActiveAttemptAsync(quizId, studentId);
+            return Ok(result);
+        }
+
+        // GET: /api/v1/student/quizzes/{courseId}/results
+        [HttpGet("quizzes/{courseId}/results")]
+        public async Task<IActionResult> GetCourseResults(int courseId)
+        {
+            var studentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                var result = await _attemptService.GetStudentAttemptsByCourseIdAsync(studentId, courseId);
+                return Ok(result);
+            }
+            catch (NotFoundException ex) { return NotFound(new { message = ex.Message }); }
         }
 
         #endregion

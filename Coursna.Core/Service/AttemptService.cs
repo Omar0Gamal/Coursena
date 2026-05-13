@@ -163,24 +163,43 @@ namespace Coursna.Core.Service
             };
         }
 
-        public async Task<AttemptResultResponse> SubmitAttemptAsync(int attemptId,string studentId)
+        public async Task<AttemptResultResponse> SubmitAttemptAsync(int attemptId, string studentId)
         {
-
-            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId,studentId)
+            var attempt = await _attemptRepo.GetByIdWithFullQuizDataAsync(attemptId, studentId)
                ?? throw new KeyNotFoundException("Attempt not found.");
- 
+
+            var maxScore = attempt.Quiz.Questions.Sum(q => q.Points);
+
+            // If already completed, just return the existing result instead of throwing
+            // This handles cases where manual submit and auto-submit happen nearly simultaneously
+            if (attempt.Status == AttemptStatus.Completed)
+            {
+                return new AttemptResultResponse
+                {
+                    AttemptId = attempt.Id,
+                    QuizId = attempt.QuizId,
+                    QuizTitle = attempt.Quiz.Title,
+                    TotalScore = maxScore > 0 ? (attempt.CurrentScore / maxScore) * 100 : 0,
+                    CompletedAt = attempt.CompletedAt ?? DateTime.UtcNow
+                };
+            }
+
+            if (attempt.Status != AttemptStatus.InProgress)
+                throw new InvalidOperationException("Attempt cannot be submitted in its current state.");
+
             var enrollment = await _enrollmentRepo
-            .GetActiveEnrollmentAsync(studentId, attempt.Quiz.CourseId);
+                .GetActiveEnrollmentAsync(studentId, attempt.Quiz.CourseId);
 
             if (enrollment == null)
                 throw new NotFoundException("Access denied");
 
-            if (attempt.Status != AttemptStatus.InProgress)
-                throw new InvalidOperationException("Attempt has already been submitted.");
-
             decimal totalScore = 0;
+            // Ensure we only process the latest response per question to prevent any double-counting
+            var distinctResponses = attempt.Responses
+                .GroupBy(r => r.QuestionId)
+                .Select(g => g.Last());
 
-            foreach (var response in attempt.Responses)
+            foreach (var response in distinctResponses)
             {
                 var question = attempt.Quiz.Questions.First(q => q.Id == response.QuestionId);
                 var selectedOption = question.Options.FirstOrDefault(o => o.Id == response.OptionId);
@@ -197,11 +216,12 @@ namespace Coursna.Core.Service
 
             await _repository.SaveChangesAsync();
 
-
             return new AttemptResultResponse
             {
                 AttemptId = attempt.Id,
-                TotalScore = attempt.CurrentScore,
+                QuizId = attempt.QuizId,
+                QuizTitle = attempt.Quiz.Title,
+                TotalScore = maxScore > 0 ? (attempt.CurrentScore / maxScore) * 100 : 0,
                 CompletedAt = attempt.CompletedAt.Value
             };
         }
@@ -221,14 +241,68 @@ namespace Coursna.Core.Service
                 throw new InvalidOperationException("Quiz is still in progress.");
             }
 
+            var maxScore = attempt.Quiz.Questions.Sum(q => q.Points);
 
             return new AttemptResultResponse
             {
                 AttemptId = attempt.Id,
-                TotalScore = attempt.CurrentScore,
+                QuizId = attempt.QuizId,
+                QuizTitle = attempt.Quiz.Title,
+                TotalScore = maxScore > 0 ? (attempt.CurrentScore / maxScore) * 100 : 0,
                 CompletedAt = attempt.CompletedAt.Value
             };
         }
+
+        public async Task<ActiveAttemptDto> GetActiveAttemptAsync(int quizId, string studentId)
+        {
+            var activeAttempt = await _attemptRepo.GetActiveAttemptAsync(quizId, studentId);
+
+            if (activeAttempt == null) return new ActiveAttemptDto { AttemptId = null };
+
+            if (activeAttempt.IsTimeExpired())
+            {
+                try
+                {
+                    await SubmitAttemptAsync(activeAttempt.Id, studentId);
+                }
+                catch { }
+                return new ActiveAttemptDto { AttemptId = null };
+            }
+
+            var expiresAt = activeAttempt.StartedAt.AddMinutes(activeAttempt.Quiz.TimeLimitInMinutes);
+            var remaining = expiresAt - DateTime.UtcNow;
+
+            return new ActiveAttemptDto
+            {
+                AttemptId = activeAttempt.Id,
+                RemainingHours = Math.Max(0, remaining.Hours + (remaining.Days * 24)),
+                RemainingMinutes = Math.Max(0, remaining.Minutes)
+            };
+        }
+
+        public async Task<List<AttemptResultResponse>> GetStudentAttemptsByCourseIdAsync(string studentId, int courseId)
+        {
+            var enrollment = await _enrollmentRepo
+                .GetActiveEnrollmentAsync(studentId, courseId);
+
+            if (enrollment == null)
+                throw new NotFoundException("Access denied");
+
+            var attempts = await _attemptRepo.GetStudentAttemptsByCourseIdAsync(studentId, courseId);
+
+            return attempts.Select(a =>
+            {
+                var maxScore = a.Quiz.Questions.Sum(q => q.Points);
+                return new AttemptResultResponse
+                {
+                    AttemptId = a.Id,
+                    QuizId = a.QuizId,
+                    QuizTitle = a.Quiz.Title,
+                    TotalScore = maxScore > 0 ? (a.CurrentScore / maxScore) * 100 : 0,
+                    CompletedAt = a.CompletedAt ?? DateTime.UtcNow
+                };
+            }).ToList();
+        }
     }
-    }
+}
 

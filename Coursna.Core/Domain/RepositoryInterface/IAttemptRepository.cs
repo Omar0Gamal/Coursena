@@ -13,5 +13,7 @@ namespace Coursna.Core.Domain.RepositoryInterface
         Task<QuizAttempt> GetByIdWithFullQuizDataAsync(int id,string studentId);
         Task<QuizAttempt> GetActiveAttemptAsync(int quizId, String StudentId);
         Task<int> GetAttemptCountAsync(int quizId, String studentId);
+        Task<List<QuizAttempt>> GetQuizResultsAsync(int quizId);
+        Task<List<QuizAttempt>> GetStudentAttemptsByCourseIdAsync(string studentId, int courseId);
     }
 }
